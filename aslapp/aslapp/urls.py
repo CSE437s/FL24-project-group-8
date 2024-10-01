@@ -15,16 +15,25 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.urls import path
 from django.urls import path, include
 from .views import sample_view
-# urlpatterns = [
-#     path("admin/", admin.site.urls),
-# ]
+from dj_rest_auth.registration.views import VerifyEmailView, RegisterView
+from django.urls import path
+from .views import register, activate  # Ensure this line is correct
+from dj_rest_auth.registration.views import VerifyEmailView
+from .views import register, confirm_email
+
 urlpatterns = [
-    path('api/auth/', include('dj_rest_auth.urls')),  # Login/Logout
-    path('api/auth/registration/', include('dj_rest_auth.registration.urls')),  # Registration
+    # path('admin/', admin.site.urls),
+    # path('api/auth/', include('dj_rest_auth.urls')),  # Adjusted to include 'api/'
+    # path('api/auth/registration/', include('dj_rest_auth.registration.urls')),  # Adjusted to include 'api/'
+    # path('api/auth/confirm-email/<str:token>/', ConfirmEmailView.as_view(), name='confirm_email'),
+    # path('auth/register/', register, name='register'),
+    # path('auth/activate/<uidb64>/<token>/', activate, name='activate'),
+    path('auth/register/', register, name='register'),
+    path('auth/activate/<uidb64>/<token>/', activate, name='activate'),
+    path('auth/confirm-email/<str:token>/', confirm_email, name='confirm_email'),
 ]
 
-# urlpatterns = [
-#     path('api/sample/', sample_view),
-# ]
+
