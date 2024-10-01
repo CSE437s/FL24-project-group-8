@@ -59,11 +59,36 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from django.conf import settings
 from .token_generator import EmailConfirmationTokenGenerator
-
+from django.contrib.auth import authenticate, login
 User = get_user_model()
 
 def sample_view(request):
     return JsonResponse({"message": "This is a sample view."})
+
+@csrf_exempt
+def login_view(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            username = data['username']
+            password = data['password']
+
+            # Authenticate user
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                if user.is_active:
+                    login(request, user)  # Log the user in
+                    return JsonResponse({"message": "Login successful."}, status=200)
+                else:
+                    return JsonResponse({"error": "Account is inactive."}, status=403)
+            else:
+                return JsonResponse({"error": "Invalid credentials."}, status=400)
+        except KeyError:
+            return JsonResponse({"error": "Username and password are required."}, status=400)
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON."}, status=400)
+
+    return JsonResponse({"error": "Only POST requests are allowed."}, status=405)
 
 @csrf_exempt
 def register(request):
@@ -72,9 +97,9 @@ def register(request):
             data = json.loads(request.body)
             email = data['email']
             username = data['username']  # Assuming you also take username
-
+            password = data['password']
             # Create the user (ensure you hash the password in a real app)
-            user = User.objects.create_user(username=username, email=email)
+            user = User.objects.create_user(username=username, email=email, password=password)
             user.is_active = False  # Deactivate account until email is confirmed
             user.save()
 
