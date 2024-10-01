@@ -22,7 +22,7 @@ from dj_rest_auth.registration.views import VerifyEmailView, RegisterView
 from django.urls import path
 from .views import register, activate  # Ensure this line is correct
 from dj_rest_auth.registration.views import VerifyEmailView
-from .views import register, confirm_email
+from .views import register, confirm_email, login_view
 
 urlpatterns = [
     # path('admin/', admin.site.urls),
@@ -34,6 +34,7 @@ urlpatterns = [
     path('auth/register/', register, name='register'),
     path('auth/activate/<uidb64>/<token>/', activate, name='activate'),
     path('auth/confirm-email/<str:token>/', confirm_email, name='confirm_email'),
+    path('auth/login/', login_view, name='login'),
 ]
 
 
