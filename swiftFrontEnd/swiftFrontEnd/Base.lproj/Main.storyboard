@@ -163,7 +163,7 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="integrate custom camera view below" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="8HC-pi-raE">
-                                <rect key="frame" x="84" y="285" width="265" height="34"/>
+                                <rect key="frame" x="65" y="263" width="265" height="34"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <textInputTraits key="textInputTraits"/>
@@ -175,6 +175,15 @@
                                 <buttonConfiguration key="configuration" style="filled" title="Go Home"/>
                                 <connections>
                                     <segue destination="DPu-9r-dId" kind="presentation" id="2LK-0H-oZH"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="R9B-Go-YZf">
+                                <rect key="frame" x="159" y="409" width="75" height="35"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" title="Button"/>
+                                <connections>
+                                    <action selector="recordVideoButtonTapped:" destination="x4y-Rv-1YP" eventType="touchUpInside" id="B2m-25-yuC"/>
                                 </connections>
                             </button>
                         </subviews>
