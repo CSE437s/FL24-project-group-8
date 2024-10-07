@@ -23,18 +23,16 @@ from django.urls import path
 from .views import register, activate  # Ensure this line is correct
 from dj_rest_auth.registration.views import VerifyEmailView
 from .views import register, confirm_email, login_view
+from django.urls import path
+from .views import request_password_reset, password_reset_confirm
 
 urlpatterns = [
-    # path('admin/', admin.site.urls),
-    # path('api/auth/', include('dj_rest_auth.urls')),  # Adjusted to include 'api/'
-    # path('api/auth/registration/', include('dj_rest_auth.registration.urls')),  # Adjusted to include 'api/'
-    # path('api/auth/confirm-email/<str:token>/', ConfirmEmailView.as_view(), name='confirm_email'),
-    # path('auth/register/', register, name='register'),
-    # path('auth/activate/<uidb64>/<token>/', activate, name='activate'),
     path('auth/register/', register, name='register'),
     path('auth/activate/<uidb64>/<token>/', activate, name='activate'),
     path('auth/confirm-email/<str:token>/', confirm_email, name='confirm_email'),
     path('auth/login/', login_view, name='login'),
+    path('auth/password-reset/', request_password_reset, name='password_reset'),
+    path('auth/password-reset-confirm/<uidb64>/<token>/', password_reset_confirm, name='password_reset_confirm'),
 ]
 
 
