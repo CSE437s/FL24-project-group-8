@@ -66,6 +66,15 @@ from django.utils.encoding import force_str
 from django.contrib.auth.tokens import default_token_generator
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
+from django.http import JsonResponse
+from django.contrib.auth import get_user_model
+from django.views.decorators.csrf import csrf_exempt
+import json
+from .models import FriendRequest, Friendship
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from .models import FriendRequest
+from django.views.decorators.csrf import csrf_exempt
 
 User = get_user_model()
 
@@ -219,10 +228,17 @@ def confirm_email(request, token):
     user_id = token_generator.check_token(token)
 
     if user_id is not None:
-        user = User.objects.get(id=user_id)
-        user.is_active = True  # Activate the user
-        user.save()
-        return JsonResponse({"message": "Email confirmed successfully!"}, status=200)
+        User = get_user_model()  # Get the user model
+        try:
+            user = User.objects.get(id=user_id)
+            if not user.is_active:  # Only activate if not already active
+                user.is_active = True
+                user.save()
+                return JsonResponse({"message": "Email confirmed successfully!"}, status=200)
+            else:
+                return JsonResponse({"message": "Email already confirmed."}, status=200)  # User already active
+        except ObjectDoesNotExist:
+            return JsonResponse({"error": "User does not exist."}, status=404)
     return JsonResponse({"error": "Invalid or expired token."}, status=400)
 
 def activate(request, uidb64, token):
@@ -238,3 +254,119 @@ def activate(request, uidb64, token):
         user = None
 
     return render(request, 'activation_invalid.html')
+
+@csrf_exempt  # Use with caution, only if you understand the implications
+def send_friend_request(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            from_username = data.get('from_username')
+            to_username = data.get('to_username')
+
+            # Validate that both usernames are provided
+            if not from_username or not to_username:
+                return JsonResponse({"error": "Both from_username and to_username are required."}, status=400)
+
+            # Retrieve user instances
+            from_user = User.objects.get(username=from_username)
+            to_user = User.objects.get(username=to_username)
+
+            # Create and save the friend request
+            friend_request = FriendRequest(from_user=from_user, to_user=to_user)
+            friend_request.save()
+
+            return JsonResponse({"message": "Friend request sent successfully!"}, status=200)
+        except User.DoesNotExist:
+            return JsonResponse({"error": "User not found."}, status=404)
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON."}, status=400)
+    return JsonResponse({"error": "Invalid request method."}, status=400)
+
+@csrf_exempt
+def accept_friend_request(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            from_username = data['from_username']
+            to_username = data['to_username']
+
+            from_user = User.objects.get(username=from_username)
+            to_user = User.objects.get(username=to_username)
+
+            friend_request = FriendRequest.objects.get(from_user=from_user, to_user=to_user)
+
+            if friend_request.accepted:
+                return JsonResponse({"error": "Friend request already accepted."}, status=400)
+
+            friend_request.accepted = True
+            friend_request.save()
+
+            # Create mutual friendships
+            Friendship.objects.create(user=from_user, friend=to_user)
+            Friendship.objects.create(user=to_user, friend=from_user)
+
+            return JsonResponse({"message": "Friend request accepted."}, status=200)
+        except KeyError:
+            return JsonResponse({"error": "Both from_username and to_username are required."}, status=400)
+        except FriendRequest.DoesNotExist:
+            return JsonResponse({"error": "Friend request not found."}, status=404)
+        except User.DoesNotExist:
+            return JsonResponse({"error": "User not found."}, status=404)
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON format."}, status=400)
+
+    return JsonResponse({"error": "Only POST requests are allowed."}, status=405)
+
+@csrf_exempt
+def get_friend_requests(request):
+    if request.method == 'GET':
+        # Get the logged-in user
+        user = request.user
+
+        # Get sent friend requests
+        sent_requests = FriendRequest.objects.filter(from_user=user)
+        sent_list = [
+            {
+                "to_user": fr.to_user.username,
+                "timestamp": fr.timestamp,
+                "accepted": fr.accepted
+            }
+            for fr in sent_requests
+        ]
+
+        # Get received friend requests
+        received_requests = FriendRequest.objects.filter(to_user=user)
+        received_list = [
+            {
+                "from_user": fr.from_user.username,
+                "timestamp": fr.timestamp,
+                "accepted": fr.accepted
+            }
+            for fr in received_requests
+        ]
+
+        # Return JSON response with both lists
+        return JsonResponse({
+            "sent_requests": sent_list,
+            "received_requests": received_list
+        }, status=200)
+
+    return JsonResponse({"error": "Only GET requests are allowed."}, status=405)
+
+@csrf_exempt  # Use with caution
+def get_friends_list(request):
+    if request.method == 'GET':
+        username = request.GET.get('username')
+        
+        if not username:
+            return JsonResponse({"error": "Username is required."}, status=400)
+
+        try:
+            user = User.objects.get(username=username)
+            friends = user.friends.values('friend__username')  # Adjust as needed for your data structure
+
+            return JsonResponse({"friends": list(friends)}, status=200)
+        except User.DoesNotExist:
+            return JsonResponse({"error": "User not found."}, status=404)
+    
+    return JsonResponse({"error": "Invalid request method."}, status=400)

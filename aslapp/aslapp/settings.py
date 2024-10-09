@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',  # Add this even if you're not using social logins
     'dj_rest_auth.registration', 
     'django.contrib.sites',  # Required for allauth
+    'aslapp',
 ]
 SITE_ID = 1
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -59,7 +60,7 @@ ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_USERNAME_REQUIRED = False
-# AUTH_USER_MODEL = 'aslapp.User'
+AUTH_USER_MODEL = 'aslapp.User'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
