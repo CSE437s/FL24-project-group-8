@@ -109,7 +109,16 @@ class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        //dismiss keyboard
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+            view.addGestureRecognizer(tapGesture)
     }
+    
+    @objc func dismissKeyboard() {
+        view.endEditing(true)
+    }
+    
     
     @IBAction func loginButtonPressed(_ sender: Any) {
         guard let username = usernameForLogin.text, !username.isEmpty,
