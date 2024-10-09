@@ -25,6 +25,7 @@ from dj_rest_auth.registration.views import VerifyEmailView
 from .views import register, confirm_email, login_view
 from django.urls import path
 from .views import request_password_reset, password_reset_confirm
+from . import views
 
 urlpatterns = [
     path('auth/register/', register, name='register'),
@@ -33,6 +34,10 @@ urlpatterns = [
     path('auth/login/', login_view, name='login'),
     path('auth/password-reset/', request_password_reset, name='password_reset'),
     path('auth/password-reset-confirm/<uidb64>/<token>/', password_reset_confirm, name='password_reset_confirm'),
+    path('friend-request/send/', views.send_friend_request, name='send_friend_request'),
+    path('friend-request/accept/', views.accept_friend_request, name='accept_friend_request'),
+    path('friend-request/list/', views.get_friend_requests, name='get_friend_requests'),
+    path('friends/list/', views.get_friends_list, name='get_friends_list'),
 ]
 
 
