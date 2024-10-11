@@ -73,7 +73,7 @@ class RegisterViewController: UIViewController {
             } catch {
                 DispatchQueue.main.async {
                     let responseString = String(data: data, encoding: .utf8) ?? "No response"
-                    self?.showAlert(message: "Failed to decode response: \(error.localizedDescription)\nResponse: \(responseString)")
+                    self?.showAlert(message: " response: \(error.localizedDescription)\nResponse: \(responseString)")
                 }
             }
         }
@@ -82,11 +82,15 @@ class RegisterViewController: UIViewController {
     
     private func handleLoginSuccess(user: User) {
         print("Login successful for user: \(user.username)")
-        let homeViewController = storyboard?.instantiateViewController(withIdentifier: "HomeViewController") as! HomeViewController
-        let navigationController = UINavigationController(rootViewController: homeViewController)
-        present(navigationController, animated: true, completion: nil)
+//        let homeViewController = storyboard?.instantiateViewController(withIdentifier: "HomeViewController") as! HomeViewController
+//        let navigationController = UINavigationController(rootViewController: homeViewController)
+//        present(navigationController, animated: true, completion: nil)
+        dismiss(animated: true, completion: nil)
     }
     
+    @IBAction func goBackToLoginView(_ sender: Any) {
+        dismiss(animated: true, completion: nil)
+    }
     private func showAlert(message: String) {
         let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
