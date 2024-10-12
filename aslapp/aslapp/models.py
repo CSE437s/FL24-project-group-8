@@ -1,3 +1,4 @@
+import os
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth import get_user_model
@@ -42,8 +43,12 @@ class Friendship(models.Model):
 class LetterPredictor:
     def __init__(self):
         # Load the pre-trained model
-        model_dict = pickle.load(open('/Users/ryandickerson/Desktop/WUBER/FL24-project-group-8/aslapp/aslapp/aimodel/model.p', 'rb'))
-        self.model = model_dict['model']
+        model_path = os.path.join(settings.BASE_DIR, 'aslapp', 'aimodel', 'model.p')
+        with open(model_path, 'rb') as model_file:
+                model_dict = pickle.load(model_file)
+                self.model = model_dict['model']
+        # model_dict = pickle.load(open('aslapp/aslapp/aimodel/model.p', 'rb'))
+        # self.model = model_dict['model']
 
         # Initialize MediaPipe Hands solution
         self.mp_hands = mp.solutions.hands

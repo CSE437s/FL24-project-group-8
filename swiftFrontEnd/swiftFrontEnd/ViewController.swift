@@ -158,6 +158,12 @@ class ViewController: UIViewController {
                 }
                 return
             }
+            print("hello world")
+            if let jsonString = String(data: data, encoding: .utf8) {
+                   print("Server Response: \(jsonString)")
+               } else {
+                   print("Unable to decode response as string")
+               }
 
             do {
                 // Decode the response to LoginResponse model

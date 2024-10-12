@@ -1,45 +1,48 @@
-//
-//  Quest1ViewController.swift
-//  swiftFrontEnd
-//
-//  Created by Mohammed Ali on 9/24/24.
-//
-
 import AVKit
 import UIKit
 import CoreVideo
 
 class Quest1ViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
 
+    @IBOutlet weak var predictedCharacterLabel: UILabel!
+
+    @IBOutlet weak var resultImageView: UIImageView!
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Do any additional setup after loading the view.
+        predictedCharacterLabel.text = "" // Initially clear
+        resultImageView.isHidden = true // Hide the result image initially
     }
-    
+
     @IBAction func capturePhotoButtonTapped(_ sender: UIButton) {
-        if UIImagePickerController.isSourceTypeAvailable(.camera) {
-            let imagePickerController = UIImagePickerController()
-            imagePickerController.delegate = self
-            imagePickerController.sourceType = .camera
-            imagePickerController.cameraCaptureMode = .photo
-            imagePickerController.allowsEditing = false
-            
+        let imagePickerController = UIImagePickerController()
+        imagePickerController.delegate = self
+        imagePickerController.allowsEditing = false
+
+        let alert = UIAlertController(title: "Choose Image", message: "Select the source", preferredStyle: .actionSheet)
+        alert.addAction(UIAlertAction(title: "Camera", style: .default, handler: { _ in
+            if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                imagePickerController.sourceType = .camera
+                self.present(imagePickerController, animated: true, completion: nil)
+            } else {
+                self.showAlert("Error", message: "Camera is not available.")
+            }
+        }))
+        alert.addAction(UIAlertAction(title: "Gallery", style: .default, handler: { _ in
+            imagePickerController.sourceType = .photoLibrary
             self.present(imagePickerController, animated: true, completion: nil)
-        } else {
-            let alert = UIAlertController(title: "Error", message: "Camera is not available.", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            present(alert, animated: true, completion: nil)
-        }
+        }))
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+
+        present(alert, animated: true, completion: nil)
     }
 
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         if let image = info[.originalImage] as? UIImage {
             picker.dismiss(animated: true) {
-                // Convert UIImage to a format that can be processed by OpenCV
                 if let imageData = image.jpegData(compressionQuality: 1.0) {
-                    // Pass the image data to the model inference function
-                    self.runInferenceOnImageData(imageData)
+                    self.uploadImage(imageData)
                 }
             }
         }
@@ -48,73 +51,83 @@ class Quest1ViewController: UIViewController, UIImagePickerControllerDelegate, U
     func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
         picker.dismiss(animated: true, completion: nil)
     }
-    
-    func runInferenceOnImageData(_ imageData: Data) {
-        // Convert imageData to a format that can be processed by OpenCV
-        let image = UIImage(data: imageData)
-        guard let cvImage = image?.toCVPixelBuffer() else { return }
-        
-        // Use your existing Python code logic here to process `cvImage` with OpenCV and MediaPipe.
-        // Perform the hand detection and extract features using MediaPipe.
-        // Predict the character using your pre-trained model.
-        
-        let predictedCharacter = "A" // Replace with actual model output
-        
-        // Display the result to the user
-        DispatchQueue.main.async {
-            let alert = UIAlertController(title: "Prediction", message: "The model predicts: \(predictedCharacter)", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            self.present(alert, animated: true, completion: nil)
-        }
-    }
-}
 
-// Extension to convert UIImage to CVPixelBuffer
-extension UIImage {
-    func toCVPixelBuffer() -> CVPixelBuffer? {
-        let width = Int(self.size.width)
-        let height = Int(self.size.height)
-        
-        var pixelBuffer: CVPixelBuffer?
-        let attributes: [String: Any] = [
-            kCVPixelBufferCGImageCompatibilityKey as String: true,
-            kCVPixelBufferCGBitmapContextCompatibilityKey as String: true
-        ]
-        
-        let status = CVPixelBufferCreate(kCFAllocatorDefault,
-                                         width,
-                                         height,
-                                         kCVPixelFormatType_32ARGB,
-                                         attributes as CFDictionary,
-                                         &pixelBuffer)
-        
-        guard status == kCVReturnSuccess, let unwrappedPixelBuffer = pixelBuffer else {
-            return nil
+    func uploadImage(_ imageData: Data) {
+        guard let url = URL(string: "http://127.0.0.1:8000/predict-letter/") else {
+            return
         }
-        
-        CVPixelBufferLockBaseAddress(unwrappedPixelBuffer, .readOnly)
-        let pixelData = CVPixelBufferGetBaseAddress(unwrappedPixelBuffer)
-        
-        let colorSpace = CGColorSpaceCreateDeviceRGB()
-        guard let context = CGContext(data: pixelData,
-                                      width: width,
-                                      height: height,
-                                      bitsPerComponent: 8,
-                                      bytesPerRow: CVPixelBufferGetBytesPerRow(unwrappedPixelBuffer),
-                                      space: colorSpace,
-                                      bitmapInfo: CGImageAlphaInfo.noneSkipFirst.rawValue) else {
-            CVPixelBufferUnlockBaseAddress(unwrappedPixelBuffer, .readOnly)
-            return nil
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+
+        let boundary = UUID().uuidString
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+
+        let body = createMultipartBody(boundary: boundary, data: imageData, mimeType: "image/jpeg", filename: "image.jpg")
+        request.httpBody = body
+
+        let uploadTask = URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                DispatchQueue.main.async {
+                    self.showAlert("Error", message: "Failed to upload image")
+                }
+                return
+            }
+
+            if let data = data, let response = response as? HTTPURLResponse, response.statusCode == 200 {
+                do {
+                    if let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: String],
+                       let predictedCharacter = jsonResponse["predicted_character"] {
+                        
+                        // Update UI on the main thread
+                        DispatchQueue.main.async {
+                            self.displayPrediction(predictedCharacter)
+                        }
+                    }
+                } catch {
+                    DispatchQueue.main.async {
+                        self.showAlert("Error", message: "Failed to parse response")
+                    }
+                }
+            }
         }
+
+        uploadTask.resume()
+    }
+
+    func createMultipartBody(boundary: String, data: Data, mimeType: String, filename: String) -> Data {
+        var body = Data()
+
+        let formFieldName = "image" // Adjust form field name as per API requirements
+
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"\(formFieldName)\"; filename=\"\(filename)\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: \(mimeType)\r\n\r\n".data(using: .utf8)!)
+        body.append(data)
+        body.append("\r\n".data(using: .utf8)!)
+        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
+
+        return body
+    }
+
+    func displayPrediction(_ predictedCharacter: String) {
+        // Display the predicted character in the label
+        self.predictedCharacterLabel.text = "Your sign is: \(predictedCharacter)"
         
-        guard let cgImage = self.cgImage else {
-            CVPixelBufferUnlockBaseAddress(unwrappedPixelBuffer, .readOnly)
-            return nil
+        // Show check mark for "B", red X for anything else
+        if predictedCharacter == "B" {
+            self.resultImageView.image = UIImage(systemName: "checkmark.circle.fill") // Green checkmark icon
+            self.resultImageView.tintColor = .systemGreen
+        } else {
+            self.resultImageView.image = UIImage(systemName: "xmark.circle.fill") // Red X icon
+            self.resultImageView.tintColor = .systemRed
         }
-        
-        context.draw(cgImage, in: CGRect(x: 0, y: 0, width: width, height: height))
-        CVPixelBufferUnlockBaseAddress(unwrappedPixelBuffer, .readOnly)
-        
-        return unwrappedPixelBuffer
+        self.resultImageView.isHidden = false // Show the result image
+    }
+
+    func showAlert(_ title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        self.present(alert, animated: true, completion: nil)
     }
 }
