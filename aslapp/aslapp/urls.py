@@ -26,6 +26,7 @@ from .views import register, confirm_email, login_view
 from django.urls import path
 from .views import request_password_reset, password_reset_confirm
 from . import views
+from .views import predict_letter_view
 
 urlpatterns = [
     path('auth/register/', register, name='register'),
@@ -38,6 +39,7 @@ urlpatterns = [
     path('friend-request/accept/', views.accept_friend_request, name='accept_friend_request'),
     path('friend-request/list/', views.get_friend_requests, name='get_friend_requests'),
     path('friends/list/', views.get_friends_list, name='get_friends_list'),
-]
+    path('predict-letter/', predict_letter_view, name='predict_letter'),
+ ]
 
 
