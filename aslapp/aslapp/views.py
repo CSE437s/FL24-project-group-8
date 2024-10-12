@@ -177,17 +177,17 @@ def login_view(request):
             if user is not None:
                 if user.is_active:
                     login(request, user)  # Log the user in
-                    return JsonResponse({"message": "Login successful."}, status=200)
+                    return JsonResponse({"success": True, "message": "Login successful."}, status=200)
                 else:
-                    return JsonResponse({"error": "Account is inactive."}, status=403)
+                    return JsonResponse({"success": False, "error": "Account is inactive."}, status=403)
             else:
-                return JsonResponse({"error": "Invalid credentials."}, status=400)
+                return JsonResponse({"success": False, "error": "Invalid credentials."}, status=400)
         except KeyError:
-            return JsonResponse({"error": "Username and password are required."}, status=400)
+            return JsonResponse({"success": False, "error": "Username and password are required."}, status=400)
         except json.JSONDecodeError:
-            return JsonResponse({"error": "Invalid JSON."}, status=400)
+            return JsonResponse({"success": False, "error": "Invalid JSON."}, status=400)
 
-    return JsonResponse({"error": "Only POST requests are allowed."}, status=405)
+    return JsonResponse({"success": False, "error": "Only POST requests are allowed."}, status=405)
 
 @csrf_exempt
 def register(request):
@@ -215,13 +215,13 @@ def register(request):
 
             send_mail(subject, message, from_email, recipient_list)
 
-            return JsonResponse({"message": "User registered successfully. Verification email sent."}, status=201)
+            return JsonResponse({"success": True, "message": "User registered successfully. Verification email sent."}, status=201)
         except KeyError:
-            return JsonResponse({"error": "Email and username are required."}, status=400)
+            return JsonResponse({"success": False, "error": "Email and username are required."}, status=400)
         except json.JSONDecodeError:
-            return JsonResponse({"error": "Invalid JSON."}, status=400)
+            return JsonResponse({"success": False, "error": "Invalid JSON."}, status=400)
 
-    return JsonResponse({"error": "Only POST requests are allowed."}, status=405)
+    return JsonResponse({"success": False, "error": "Only POST requests are allowed."}, status=405)
 
 def confirm_email(request, token):
     token_generator = EmailConfirmationTokenGenerator()
