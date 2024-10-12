@@ -11,6 +11,11 @@ from .token_generator import EmailConfirmationTokenGenerator
 import json
 from django.conf import settings
 from django.contrib.auth import authenticate, login
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views import View
+from django.core.files.storage import default_storage
+from .models import LetterPredictor  # Import your class from models
 
 User = get_user_model()
 
@@ -288,3 +293,29 @@ def activate(request, uidb64, token):
         user = None
 
     return render(request, 'activation_invalid.html')
+
+
+@csrf_exempt
+def predict_letter_view(request):
+    if request.method == 'POST':
+        if 'image' not in request.FILES:
+            return JsonResponse({"error": "No image file provided."}, status=400)
+
+        image_file = request.FILES['image']
+        # Save the image to a temporary location
+        image_path = default_storage.save(image_file.name, image_file)
+
+        # Create an instance of LetterPredictor and predict the letter
+        predictor = LetterPredictor()
+        predicted_character = predictor.predict_letter_from_image(image_path)
+
+        # Optionally, you can delete the image after processing
+        default_storage.delete(image_path)
+
+        if predicted_character:
+            return JsonResponse({"predicted_character": predicted_character}, status=200)
+        else:
+            return JsonResponse({"error": "Could not predict the letter."}, status=500)
+
+    return JsonResponse({"error": "Invalid request method. Only POST is allowed."}, status=400)
+
