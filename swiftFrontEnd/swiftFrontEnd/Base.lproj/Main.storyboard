@@ -412,6 +412,12 @@
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="BTb-87-c7J">
+                                <rect key="frame" x="141" y="636" width="112" height="35"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" title="Add friends"/>
+                            </button>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="J1P-9j-tew"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
@@ -420,6 +426,21 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="iKf-O4-wLl" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1581" y="1205"/>
+        </scene>
+        <!--View Controller-->
+        <scene sceneID="tEu-TV-uur">
+            <objects>
+                <viewController id="Y3w-uh-gym" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="pgB-ng-3nl">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <viewLayoutGuide key="safeArea" id="dXO-nl-bMQ"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="DlC-vY-yXv" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2449" y="1833"/>
         </scene>
         <!--Register View Controller-->
         <scene sceneID="mFf-D6-acP">
