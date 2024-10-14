@@ -9,9 +9,12 @@ import UIKit
 
 class HomeViewController: UIViewController {
 
+    @IBOutlet weak var usernameTextLabel: UILabel!
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        if let username = UserSession.shared.username {
+            usernameTextLabel.text = username
+              }
         // Do any additional setup after loading the view.
     }
     

@@ -119,39 +119,33 @@ class ViewController: UIViewController {
         view.endEditing(true)
     }
     
+    @IBAction func forgotPasswordButtonPressed(_ sender: Any) {
+        
+        if let forgotPasswordViewController = storyboard?.instantiateViewController(withIdentifier: "ForgotPasswordViewController") as? ForgotPasswordViewController {
+                let navigationController = UINavigationController(rootViewController: forgotPasswordViewController)
+                present(navigationController, animated: true, completion: nil)
+            } else {
+                print("Could not instantiate ForgotPasswordViewController")
+            }
+    }
     
     @IBAction func loginButtonPressed(_ sender: Any) {
         guard let username = usernameForLogin.text, !username.isEmpty,
-              let password = passwordForLogin.text, !password.isEmpty else {
-            showAlert(message: "Please enter a valid username and password.")
-            return
-        }
-        
-        // API URL for login
-        guard let url = URL(string: "http://127.0.0.1:8000/auth/login/") else {
-            print("Invalid URL")
-            return
-        }
-
-        // Prepare the request
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        // Create the body for the request
-        let body: [String: String] = ["username": username, "password": password]
-        request.httpBody = try? JSONSerialization.data(withJSONObject: body, options: [])
-
-        // Start the network task
-        let task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
-            if let error = error {
-                // Handle error here
-                DispatchQueue.main.async {
-                    self?.showAlert(message: "Failed to login: \(error.localizedDescription)")
-                }
+                  let password = passwordForLogin.text, !password.isEmpty else {
+                showAlert(message: "Please enter a valid username and password.")
+                return
+            }
+            
+            // API URL for login
+            guard let url = URL(string: "http://127.0.0.1:8000/auth/login/") else {
+                print("Invalid URL")
                 return
             }
 
+            // Prepare the request
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             guard let data = data else {
                 DispatchQueue.main.async {
                     self?.showAlert(message: "No data returned from server")
@@ -165,31 +159,50 @@ class ViewController: UIViewController {
                    print("Unable to decode response as string")
                }
 
-            do {
-                // Decode the response to LoginResponse model
-                let loginResponse = try JSONDecoder().decode(LoginResponse.self, from: data)
-                
-                DispatchQueue.main.async {
-                    if loginResponse.success {
-                        // Handle successful login
-                        self?.handleLoginSuccess(key: loginResponse.key)
-                    } else {
-                        // Handle failed login
+            // Create the body for the request
+            let body: [String: String] = ["username": username, "password": password]
+            request.httpBody = try? JSONSerialization.data(withJSONObject: body, options: [])
+
+            // Start the network task
+            let task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+                if let error = error {
+                    DispatchQueue.main.async {
+                        self?.showAlert(message: "Failed to login: \(error.localizedDescription)")
+                    }
+                    return
+                }
+
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    DispatchQueue.main.async {
+                        self?.showAlert(message: "No response from server")
+                    }
+                    return
+                }
+
+                // Check for HTTP status code
+                switch httpResponse.statusCode {
+                case 200:
+                    // Handle successful login
+                    DispatchQueue.main.async {
+                        self?.handleLoginSuccess()
+                    }
+                case 401:
+                    // Handle unauthorized error
+                    DispatchQueue.main.async {
                         self?.showAlert(message: "Login failed. Please check your credentials.")
                     }
-                }
-            } catch {
-                // Handle decoding errors
-                DispatchQueue.main.async {
-                    self?.showAlert(message: "Failed to decode response: \(error.localizedDescription)")
+                default:
+                    // Handle other status codes
+                    DispatchQueue.main.async {
+                        self?.showAlert(message: "Error: \(httpResponse.statusCode)")
+                    }
                 }
             }
-        }
 
-        task.resume()
+            task.resume()
     }
 
-    private func handleLoginSuccess(key: String?) {
+    private func handleLoginSuccess() {
         // Handle successful login, e.g., navigate to the home screen
 //        print("Login successful with key: \(key ?? "No key returned")")
 //        
@@ -199,6 +212,7 @@ class ViewController: UIViewController {
 //        } else {
 //            showAlert(message: "Failed to load HomeViewController")
 //        }
+        UserSession.shared.username = usernameForLogin.text
         if let homeViewController = storyboard?.instantiateViewController(withIdentifier: "HomeViewController") as? HomeViewController {
                 let navigationController = UINavigationController(rootViewController: homeViewController)
                 present(navigationController, animated: true, completion: nil)
