@@ -200,6 +200,7 @@ class ViewController: UIViewController {
 //        } else {
 //            showAlert(message: "Failed to load HomeViewController")
 //        }
+        UserSession.shared.username = usernameForLogin.text
         if let homeViewController = storyboard?.instantiateViewController(withIdentifier: "HomeViewController") as? HomeViewController {
                 let navigationController = UINavigationController(rootViewController: homeViewController)
                 present(navigationController, animated: true, completion: nil)
