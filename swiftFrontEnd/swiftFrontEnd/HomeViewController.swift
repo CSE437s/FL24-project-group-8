@@ -20,8 +20,12 @@ class HomeViewController: UIViewController {
     
     @IBAction func logOutButtonPressed(_ sender: Any) {
         
-        dismiss(animated: true, completion: nil)
-        
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+           
+        if let loginVC = storyboard.instantiateViewController(withIdentifier: "loginViewController") as? ViewController {
+               loginVC.modalPresentationStyle = .fullScreen
+               self.present(loginVC, animated: true, completion: nil)
+           }
     }
     
     /*
