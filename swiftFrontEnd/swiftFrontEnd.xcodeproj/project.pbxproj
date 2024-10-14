@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		8E4FA57C2CBD6BAD003E217D /* DGCharts in Frameworks */ = {isa = PBXBuildFile; productRef = 8E4FA57B2CBD6BAD003E217D /* DGCharts */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		8E85875C2CA31265003F2F29 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -22,6 +26,19 @@
 			remoteInfo = swiftFrontEnd;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		8E8574352CBCC796004880D8 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		8E8587452CA31263003F2F29 /* swiftFrontEnd.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = swiftFrontEnd.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -65,6 +82,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8E4FA57C2CBD6BAD003E217D /* DGCharts in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -85,12 +103,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		8E85742F2CBCC6C1004880D8 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		8E85873C2CA31263003F2F29 = {
 			isa = PBXGroup;
 			children = (
 				8E8587472CA31263003F2F29 /* swiftFrontEnd */,
 				8E85875E2CA31265003F2F29 /* swiftFrontEndTests */,
 				8E8587682CA31265003F2F29 /* swiftFrontEndUITests */,
+				8E85742F2CBCC6C1004880D8 /* Frameworks */,
 				8E8587462CA31263003F2F29 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -115,6 +141,7 @@
 				8E8587412CA31263003F2F29 /* Sources */,
 				8E8587422CA31263003F2F29 /* Frameworks */,
 				8E8587432CA31263003F2F29 /* Resources */,
+				8E8574352CBCC796004880D8 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -125,6 +152,7 @@
 			);
 			name = swiftFrontEnd;
 			packageProductDependencies = (
+				8E4FA57B2CBD6BAD003E217D /* DGCharts */,
 			);
 			productName = swiftFrontEnd;
 			productReference = 8E8587452CA31263003F2F29 /* swiftFrontEnd.app */;
@@ -208,6 +236,9 @@
 			);
 			mainGroup = 8E85873C2CA31263003F2F29;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				8E4FA57A2CBD6BAD003E217D /* XCRemoteSwiftPackageReference "Charts" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 8E8587462CA31263003F2F29 /* Products */;
 			projectDirPath = "";
@@ -318,6 +349,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 3J9ES6D4G3;
+				"FRAMEWORK_SEARCH_PATHS[arch=*]" = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = swiftFrontEnd/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -573,6 +605,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		8E4FA57A2CBD6BAD003E217D /* XCRemoteSwiftPackageReference "Charts" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/danielgindi/Charts.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.1.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		8E4FA57B2CBD6BAD003E217D /* DGCharts */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8E4FA57A2CBD6BAD003E217D /* XCRemoteSwiftPackageReference "Charts" */;
+			productName = DGCharts;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 8E85873D2CA31263003F2F29 /* Project object */;
 }

@@ -109,11 +109,24 @@ class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        clearTextFields()
         //dismiss keyboard
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
             view.addGestureRecognizer(tapGesture)
     }
+    
+    // This method is called every time the view appears, including when returning from HomeViewController
+       override func viewWillAppear(_ animated: Bool) {
+           super.viewWillAppear(animated)
+           clearTextFields()  // Call function to clear fields
+       }
+    
+
+
+       private func clearTextFields() {
+           passwordForLogin.text = ""
+           usernameForLogin.text = ""
+       }
     
     @objc func dismissKeyboard() {
         view.endEditing(true)
@@ -211,6 +224,7 @@ class ViewController: UIViewController {
 //            showAlert(message: "Failed to load HomeViewController")
 //        }
         UserSession.shared.username = usernameForLogin.text
+        clearTextFields()
         if let homeViewController = storyboard?.instantiateViewController(withIdentifier: "HomeViewController") as? HomeViewController {
                 let navigationController = UINavigationController(rootViewController: homeViewController)
                 present(navigationController, animated: true, completion: nil)
