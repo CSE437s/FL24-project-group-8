@@ -198,7 +198,7 @@ class FriendsLeaderboardViewController: UIViewController {
            // Set the labels for the x-axis
            barChartView.xAxis.valueFormatter = IndexAxisValueFormatter(values: friendNames)
            barChartView.xAxis.granularity = 1
-           barChartView.xAxis.labelRotationAngle = -45  // Optional: rotate labels if they overlap
+           barChartView.xAxis.labelRotationAngle = -45  // 
 
            // Customize y-axis (scores)
            barChartView.leftAxis.axisMinimum = 0
