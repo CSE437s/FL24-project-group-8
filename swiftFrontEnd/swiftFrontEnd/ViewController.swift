@@ -146,6 +146,18 @@ class ViewController: UIViewController {
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            guard let data = data else {
+                DispatchQueue.main.async {
+                    self?.showAlert(message: "No data returned from server")
+                }
+                return
+            }
+            print("hello world")
+            if let jsonString = String(data: data, encoding: .utf8) {
+                   print("Server Response: \(jsonString)")
+               } else {
+                   print("Unable to decode response as string")
+               }
 
             // Create the body for the request
             let body: [String: String] = ["username": username, "password": password]
