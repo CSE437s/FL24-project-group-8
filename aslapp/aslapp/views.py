@@ -20,19 +20,51 @@ from .models import LetterPredictor  # Import your class from models
 User = get_user_model()
 
 @csrf_exempt
+# def request_password_reset(request):
+#     if request.method == 'POST':
+#         try:
+#             data = json.loads(request.body)
+#             email = data.get('email')
+
+#             if not email:
+#                 return JsonResponse({"error": "Email is required."}, status=400)
+
+#             users = User.objects.filter(email=email)
+
+#             if not users.exists():
+#                 return JsonResponse({"error": "User with this email does not exist."}, status=404)
+
+#             user = users.first()
+#             token = default_token_generator.make_token(user)
+#             uid = urlsafe_base64_encode(force_bytes(user.pk))
+#             reset_link = f"http://localhost:8000/auth/password-reset-confirm/{uid}/{token}/"
+#             subject = 'Password Reset'
+#             message = f'Click the link to reset your password: {reset_link}'
+#             from_email = settings.DEFAULT_FROM_EMAIL
+#             recipient_list = [email]
+
+#             send_mail(subject, message, from_email, recipient_list)
+
+#             return JsonResponse({"message": "Password reset email sent."}, status=200)
+
+#         except json.JSONDecodeError:
+#             return JsonResponse({"error": "Invalid JSON."}, status=400)
+
+#     return JsonResponse({"error": "Only POST requests are allowed."}, status=405)
 def request_password_reset(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
             email = data.get('email')
+            username = data.get('username')
 
-            if not email:
-                return JsonResponse({"error": "Email is required."}, status=400)
+            if not email or not username:
+                return JsonResponse({"error": "Email and username are required."}, status=400)
 
-            users = User.objects.filter(email=email)
+            users = User.objects.filter(email=email, username=username)
 
             if not users.exists():
-                return JsonResponse({"error": "User with this email does not exist."}, status=404)
+                return JsonResponse({"error": "User with this email and username does not exist."}, status=404)
 
             user = users.first()
             token = default_token_generator.make_token(user)
@@ -51,6 +83,7 @@ def request_password_reset(request):
             return JsonResponse({"error": "Invalid JSON."}, status=400)
 
     return JsonResponse({"error": "Only POST requests are allowed."}, status=405)
+
 
 @csrf_exempt
 def password_reset_confirm(request, uidb64, token):
