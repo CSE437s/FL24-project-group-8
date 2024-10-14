@@ -146,18 +146,6 @@ class ViewController: UIViewController {
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            guard let data = data else {
-                DispatchQueue.main.async {
-                    self?.showAlert(message: "No data returned from server")
-                }
-                return
-            }
-            print("hello world")
-            if let jsonString = String(data: data, encoding: .utf8) {
-                   print("Server Response: \(jsonString)")
-               } else {
-                   print("Unable to decode response as string")
-               }
 
             // Create the body for the request
             let body: [String: String] = ["username": username, "password": password]
@@ -165,6 +153,7 @@ class ViewController: UIViewController {
 
             // Start the network task
             let task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+                // Error handling
                 if let error = error {
                     DispatchQueue.main.async {
                         self?.showAlert(message: "Failed to login: \(error.localizedDescription)")
@@ -195,6 +184,15 @@ class ViewController: UIViewController {
                     // Handle other status codes
                     DispatchQueue.main.async {
                         self?.showAlert(message: "Error: \(httpResponse.statusCode)")
+                    }
+                }
+
+                // If you want to print the response body as a string
+                if let data = data {
+                    if let jsonString = String(data: data, encoding: .utf8) {
+                        print("Server Response: \(jsonString)")
+                    } else {
+                        print("Unable to decode response as string")
                     }
                 }
             }
