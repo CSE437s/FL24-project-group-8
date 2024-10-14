@@ -30,54 +30,50 @@ class RegisterViewController: UIViewController {
               let username = username.text, !username.isEmpty,
               let password = password.text, !password.isEmpty,
               let confirmPassword = confirmPassword.text, !confirmPassword.isEmpty else {
-            showAlert(message: "Please fill in all fields.")
+            showAlert(title: "Error", message: "Please fill in all fields.")
             return
         }
         
         guard let url = URL(string: "http://127.0.0.1:8000/auth/register/") else {
-            print("Invalid URL")
-            return
-        }
+               print("Invalid URL")
+               return
+           }
 
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        let body: [String: String] = [
-                        "username": username,  // Use the correct variable
-                        "password": password,   // Use the correct variable
-                        "email": email              // Use the correct variable
-                    ]
-        request.httpBody = try? JSONSerialization.data(withJSONObject: body, options: [])
-        
-        let task = URLSession.shared.dataTask(with: request) { [weak self] (data, response, error) in
-            if let error = error {
-                DispatchQueue.main.async {
-                    self?.showAlert(message: "Failed to register: \(error.localizedDescription)")
-                }
-                return
-            }
-
-            guard let data = data else {
-                DispatchQueue.main.async {
-                    self?.showAlert(message: "No data returned from server")
-                }
-                return
-            }
-
-            do {
-                let user = try JSONDecoder().decode(User.self, from: data)
-                DispatchQueue.main.async {
-                    self?.handleLoginSuccess(user: user)
-                }
-            } catch {
-                DispatchQueue.main.async {
-                    let responseString = String(data: data, encoding: .utf8) ?? "No response"
-                    self?.showAlert(message: " response: \(error.localizedDescription)\nResponse: \(responseString)")
-                }
-            }
-        }
-        task.resume()
+           var request = URLRequest(url: url)
+           request.httpMethod = "POST"
+           request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+           
+           let body: [String: String] = [
+               "username": username,
+               "password": password,
+               "email": email
+           ]
+           request.httpBody = try? JSONSerialization.data(withJSONObject: body, options: [])
+           
+           let task = URLSession.shared.dataTask(with: request) { [weak self] (data, response, error) in
+               if let error = error {
+                   DispatchQueue.main.async {
+                       self?.showAlert(title: "Error", message: "Failed to register: \(error.localizedDescription)")
+                   }
+                   return
+               }
+               
+               if let httpResponse = response as? HTTPURLResponse {
+                   if httpResponse.statusCode == 201 {
+                       // Show success alert with appropriate title
+                       DispatchQueue.main.async {
+                           self?.showAlert(title: "Success", message: "Registration successful! Please check your email to verify your account.")
+                       }
+                   } else {
+                       // Handle non-201 responses here
+                       DispatchQueue.main.async {
+                           let responseString = String(data: data ?? Data(), encoding: .utf8) ?? "No response"
+                           self?.showAlert(title: "Error", message: "Error: \(httpResponse.statusCode)\nResponse: \(responseString)")
+                       }
+                   }
+               }
+           }
+           task.resume()
     }
     
     private func handleLoginSuccess(user: User) {
@@ -91,8 +87,8 @@ class RegisterViewController: UIViewController {
     @IBAction func goBackToLoginView(_ sender: Any) {
         dismiss(animated: true, completion: nil)
     }
-    private func showAlert(message: String) {
-        let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
+    private func showAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
     }

@@ -230,6 +230,15 @@
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="IF8-YH-jb3">
+                                <rect key="frame" x="282" y="59" width="85" height="35"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" title="Log Out"/>
+                                <connections>
+                                    <action selector="logOutButtonPressed:" destination="DPu-9r-dId" eventType="touchUpInside" id="hxy-KS-gdo"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="i6D-xX-Stz"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
@@ -457,7 +466,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="iKf-O4-wLl" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1581" y="1205"/>
+            <point key="canvasLocation" x="1580.9160305343512" y="1204.9295774647887"/>
         </scene>
         <!--View Controller-->
         <scene sceneID="tEu-TV-uur">
@@ -583,9 +592,8 @@
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>
-        <segue reference="bft-sf-h2U"/>
-        <segue reference="lC6-Ht-34O"/>
-        <segue reference="2LK-0H-oZH"/>
+        <segue reference="tOL-fe-6lQ"/>
+        <segue reference="ELc-cN-yVT"/>
     </inferredMetricsTieBreakers>
     <resources>
         <systemColor name="systemBackgroundColor">
