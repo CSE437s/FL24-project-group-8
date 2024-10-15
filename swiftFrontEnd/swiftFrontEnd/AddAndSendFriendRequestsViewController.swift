@@ -243,23 +243,47 @@ class AddAndSendFriendRequestsViewController: UIViewController, UITableViewDeleg
         let cell = tableView.dequeueReusableCell(withIdentifier: "FriendRequestCell", for: indexPath)
 
         if indexPath.section == 0 {
+            // Sent requests section
             if sentRequests.isEmpty {
                 cell.textLabel?.text = "No sent friend requests"
             } else {
                 let request = sentRequests[indexPath.row]
                 cell.textLabel?.text = "Sent to: \(request.toUser)"
+                // Make sure there is no Accept button in the Sent section
+                for subview in cell.contentView.subviews {
+                    subview.removeFromSuperview()
+                }
             }
         } else {
+            // Received requests section
             if receivedRequests.isEmpty {
                 cell.textLabel?.text = "No received friend requests"
             } else {
                 let request = receivedRequests[indexPath.row]
                 cell.textLabel?.text = "From: \(request.fromUser)"
+
+                // Remove any existing subviews (e.g., buttons) before adding new ones
+                for subview in cell.contentView.subviews {
+                    subview.removeFromSuperview()
+                }
+
+                // If the received request is not accepted, show the Accept button
+                if !request.accepted {
+                    let acceptButton = UIButton(type: .system)
+                    acceptButton.setTitle("Accept", for: .normal)
+                    acceptButton.setTitleColor(.systemBlue, for: .normal)
+                    acceptButton.frame = CGRect(x: cell.contentView.frame.width - 100, y: 10, width: 80, height: 30)
+                    acceptButton.tag = indexPath.row // Tag to identify the row
+                    acceptButton.addTarget(self, action: #selector(acceptRequestButtonTapped(_:)), for: .touchUpInside)
+
+                    cell.contentView.addSubview(acceptButton)
+                }
             }
         }
 
         return cell
     }
+
 
 
  
