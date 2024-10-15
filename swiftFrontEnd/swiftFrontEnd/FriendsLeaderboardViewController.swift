@@ -193,22 +193,26 @@ class FriendsLeaderboardViewController: UIViewController {
            addFriendNamesOnBars(friendNames)
        }
 
-       // Function to configure the chart's appearance (labels, axis, etc.)
-       func configureChartAppearance(_ friendNames: [String]) {
-           // Set the labels for the x-axis
-           barChartView.xAxis.valueFormatter = IndexAxisValueFormatter(values: friendNames)
-           barChartView.xAxis.granularity = 1
-           barChartView.xAxis.labelRotationAngle = -45  // 
+    // Function to configure the chart's appearance (labels, axis, etc.)
+    func configureChartAppearance(_ friendNames: [String]) {
+        // Set the labels for the x-axis
+        barChartView.xAxis.valueFormatter = IndexAxisValueFormatter(values: friendNames)
+        barChartView.xAxis.granularity = 1
+        barChartView.xAxis.labelPosition = .bottom // Ensure labels are at the bottom
+        barChartView.xAxis.labelRotationAngle = -45  // Rotate labels to avoid overlap
+        barChartView.xAxis.wordWrapEnabled = true // Allow wrapping if space is tight
+        barChartView.xAxis.labelCount = friendNames.count // Show all friend names
 
-           // Customize y-axis (scores)
-           barChartView.leftAxis.axisMinimum = 0
-           barChartView.rightAxis.enabled = false  // Hide the right axis
-           barChartView.legend.enabled = true  // Show legend
+        // Customize y-axis (scores)
+        barChartView.leftAxis.axisMinimum = 0
+        barChartView.rightAxis.enabled = false  // Hide the right axis
+        barChartView.legend.enabled = true  // Show legend
 
-           // More customization (optional)
-           barChartView.animate(yAxisDuration: 1.0)  // Add animation
-       }
+        // More customization (optional)
+        barChartView.animate(yAxisDuration: 1.0)  // Add animation
+    }
 
+    
        // Function to add friend names directly on top of the bars using ChartMarker
        func addFriendNamesOnBars(_ friendNames: [String]) {
            // Customizing the marker to show friend names on top of the bars

@@ -25,14 +25,15 @@ def request_password_reset(request):
         try:
             data = json.loads(request.body)
             email = data.get('email')
+            username = data.get('username')
 
-            if not email:
-                return JsonResponse({"error": "Email is required."}, status=400)
+            if not email or not username:
+                return JsonResponse({"error": "Email and username are required."}, status=400)
 
-            users = User.objects.filter(email=email)
+            users = User.objects.filter(email=email, username=username)
 
             if not users.exists():
-                return JsonResponse({"error": "User with this email does not exist."}, status=404)
+                return JsonResponse({"error": "User with this email and username does not exist."}, status=404)
 
             user = users.first()
             token = default_token_generator.make_token(user)
@@ -55,39 +56,40 @@ def request_password_reset(request):
 @csrf_exempt
 def password_reset_confirm(request, uidb64, token):
     if request.method == 'GET':
-        return render(request, 'password_reset_form.html', {
-            'uidb64': uidb64,
-            'token': token
-        })
+       return render(request, 'password_reset_form.html', {
+           'uidb64': uidb64,
+           'token': token
+       })
 
     if request.method == 'POST':
-        if request.content_type == 'application/json':
-            try:
-                data = json.loads(request.body)
-                new_password = data.get('new_password')
-            except json.JSONDecodeError:
-                return JsonResponse({"error": "Invalid JSON."}, status=400)
-        else:
-            new_password = request.POST.get('new_password')
+       if request.content_type == 'application/json':
+           try:
+               data = json.loads(request.body)
+               new_password = data.get('new_password')
+           except json.JSONDecodeError:
+               return JsonResponse({"error": "Invalid JSON."}, status=400)
+       else:
+           new_password = request.POST.get('new_password')
 
-        if not new_password:
-            return JsonResponse({"error": "New password is required."}, status=400)
+       if not new_password:
+           return JsonResponse({"error": "New password is required."}, status=400)
 
-        try:
-            uid = force_str(urlsafe_base64_decode(uidb64))
-            user = User.objects.get(pk=uid)
-        except (User.DoesNotExist, ValueError, TypeError, OverflowError):
-            return JsonResponse({"error": "Invalid user."}, status=400)
+       try:
+           uid = force_str(urlsafe_base64_decode(uidb64))
+           user = User.objects.get(pk=uid)
+       except (User.DoesNotExist, ValueError, TypeError, OverflowError):
+           return JsonResponse({"error": "Invalid user."}, status=400)
 
-        if not default_token_generator.check_token(user, token):
-            return JsonResponse({"error": "Invalid or expired token."}, status=400)
+       if not default_token_generator.check_token(user, token):
+           return JsonResponse({"error": "Invalid or expired token."}, status=400)
 
-        user.set_password(new_password)
-        user.save()
+       user.set_password(new_password)
+       user.save()
 
-        return JsonResponse({"message": "Password reset successful."}, status=200)
+       return JsonResponse({"message": "Password reset successful."}, status=200)
 
     return JsonResponse({"error": "Only POST requests are allowed."}, status=405)
+
 
 def sample_view(request):
     return JsonResponse({"message": "This is a sample view."})
