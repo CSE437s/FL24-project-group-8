@@ -10,6 +10,8 @@ import UIKit
 class ForgotPasswordViewController: UIViewController {
 
     @IBOutlet weak var emailOfUser: UITextField!
+    @IBOutlet weak var username: UITextField!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
@@ -24,49 +26,62 @@ class ForgotPasswordViewController: UIViewController {
     @IBAction func resetPasswordButton(_ sender: Any) {
             
         guard let email = emailOfUser.text, !email.isEmpty else {
-             showAlert(title: "Error", message: "Please enter your email.")
-             return
-         }
-         
+            showAlert(title: "Error", message: "Please enter your email.")
+            return
+        }
+        
+        // Ensure username is not empty
+        guard let username = username.text, !username.isEmpty else {
+            showAlert(title: "Error", message: "Please enter your username.")
+            return
+        }
+        
+        // Create the URL
         guard let url = URL(string: "http://localhost:8000/auth/password-reset/") else {
             showAlert(title: "Error", message: "Invalid URL.")
             return
         }
-
-         
-         let body: [String: String] = ["email": email]
-         guard let bodyData = try? JSONSerialization.data(withJSONObject: body, options: []) else {
-             showAlert(title: "Error", message: "Failed to serialize request data.")
-             return
-         }
-         
-         var request = URLRequest(url: url)
-         request.httpMethod = "POST"
-         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-         request.httpBody = bodyData
-         
-         let task = URLSession.shared.dataTask(with: request) { data, response, error in
-             DispatchQueue.main.async {
-                 if let error = error {
-                     self.showAlert(title: "Error", message: "Request failed: \(error.localizedDescription)")
-                     return
-                 }
-                 
-                 if let httpResponse = response as? HTTPURLResponse {
-                     if httpResponse.statusCode == 200 {
-                         self.showAlert(title: "Success", message: "Password reset request was successful.")
-                     } else {
-                         self.showAlert(title: "Error", message: "Account with this email does not exist or invalid email.")
-                     }
-                 }
-                 
-                 if let data = data, let responseData = String(data: data, encoding: .utf8) {
-                     print("Response: \(responseData)")
-                 }
-             }
-         }
-         
-         task.resume()
+        
+        // Prepare the body with both email and username
+        let body: [String: String] = ["email": email, "username": username]
+        
+        // Serialize the body into JSON data
+        guard let bodyData = try? JSONSerialization.data(withJSONObject: body, options: []) else {
+            showAlert(title: "Error", message: "Failed to serialize request data.")
+            return
+        }
+        
+        // Create the request
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = bodyData
+        
+        // Send the request
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    self.showAlert(title: "Error", message: "Request failed: \(error.localizedDescription)")
+                    return
+                }
+                
+                if let httpResponse = response as? HTTPURLResponse {
+                    if httpResponse.statusCode == 200 {
+                        self.showAlert(title: "Success", message: "Password reset request was successful.")
+                    } else if httpResponse.statusCode == 404 {
+                        self.showAlert(title: "Error", message: "Account with this email and username does not exist.")
+                    } else {
+                        self.showAlert(title: "Error", message: "Something went wrong. Please try again.")
+                    }
+                }
+                
+                if let data = data, let responseData = String(data: data, encoding: .utf8) {
+                    print("Response: \(responseData)")
+                }
+            }
+        }
+        
+        task.resume()
      }
 
      // Helper function to display an alert
