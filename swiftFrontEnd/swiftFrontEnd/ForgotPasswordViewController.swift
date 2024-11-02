@@ -14,6 +14,7 @@ class ForgotPasswordViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupGradientBackground()
         // Do any additional setup after loading the view.
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
             view.addGestureRecognizer(tapGesture)
@@ -21,6 +22,18 @@ class ForgotPasswordViewController: UIViewController {
     
     @objc func dismissKeyboard() {
         view.endEditing(true)
+    }
+    
+    private func setupGradientBackground() {
+        let gradientLayer = CAGradientLayer()
+        gradientLayer.colors = [
+            UIColor.systemBlue.withAlphaComponent(0.3).cgColor,
+            UIColor.systemTeal.withAlphaComponent(0.1).cgColor
+        ]
+        gradientLayer.startPoint = CGPoint(x: 0, y: 0)
+        gradientLayer.endPoint = CGPoint(x: 1, y: 1)
+        gradientLayer.frame = view.bounds
+        view.layer.insertSublayer(gradientLayer, at: 0)
     }
     
     @IBAction func resetPasswordButton(_ sender: Any) {
