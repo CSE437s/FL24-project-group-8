@@ -16,6 +16,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from django.core.files.storage import default_storage
 from .models import LetterPredictor  # Import your class from models
+from .models import PhrasePredictor  # Import your class from models
 
 User = get_user_model()
 
@@ -350,6 +351,30 @@ def predict_letter_view(request):
             return JsonResponse({"predicted_character": predicted_character}, status=200)
         else:
             return JsonResponse({"error": "Could not predict the letter."}, status=500)
+
+    return JsonResponse({"error": "Invalid request method. Only POST is allowed."}, status=400)
+
+@csrf_exempt
+def predict_phrase_view(request):
+    if request.method == 'POST':
+        if 'video' not in request.FILES:
+            return JsonResponse({"error": "No video file provided."}, status=400)
+
+        vid_file = request.FILES['video']
+        # Save the image to a temporary location
+        vid_path = default_storage.save(vid_file.name, vid_file)
+
+        # Create an instance of LetterPredictor and predict the letter
+        predictor = PhrasePredictor()
+        predicted_phrase = predictor.predict_phrase_from_video(vid_path)
+
+        # Optionally, you can delete the image after processing
+        default_storage.delete(vid_path)
+
+        if predicted_phrase:
+            return JsonResponse({"predicted_phrase": predicted_phrase}, status=200)
+        else:
+            return JsonResponse({"error": "Could not predict the phrase."}, status=500)
 
     return JsonResponse({"error": "Invalid request method. Only POST is allowed."}, status=400)
 
