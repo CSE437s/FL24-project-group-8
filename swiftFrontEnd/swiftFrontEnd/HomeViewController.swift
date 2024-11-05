@@ -6,6 +6,8 @@
 //
 
 import UIKit
+import UserNotifications
+
 
 class HomeViewController: UIViewController {
 
@@ -18,6 +20,19 @@ class HomeViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        // Request notification authorization
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
+            if let error = error {
+                print("Error requesting notification authorization: \(error)")
+            }
+            if granted {
+                print("Notification permission granted.")
+            } else {
+                print("Notification permission denied.")
+            }
+        }
+        
+        
         if let username = UserSession.shared.username {
             usernameTextLabel.text = username
               }
@@ -29,7 +44,37 @@ class HomeViewController: UIViewController {
           setupButtonAppearance(button: friendsButton, iconName: "person.2")
           setupButtonAppearance(button: learnButton, iconName: "book")
         // Do any additional setup after loading the view.
+        scheduleDailyQuestReminder() // Schedule the notification
     }
+    
+    func scheduleDailyQuestReminder() {
+        // Clear existing notifications
+        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+        
+        // Configure the notification content
+        let content = UNMutableNotificationContent()
+        content.title = "Daily Quest Reminder"
+        content.body = "Don't forget to submit your daily quest in the ASL App!"
+        content.sound = .default
+
+        // Set up the trigger to fire at 8:00 PM every day
+        var dateComponents = DateComponents()
+        dateComponents.hour = 8 // 8 PM
+        dateComponents.minute = 37
+
+        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
+
+        // Create the notification request
+        let request = UNNotificationRequest(identifier: "dailyQuestReminder", content: content, trigger: trigger)
+
+        // Schedule the notification
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("Error scheduling daily quest notification: \(error)")
+            }
+        }
+    }
+
     
     private func setupButtonAppearance(button: UIButton, iconName: String) {
         // Set icon and title for the button
