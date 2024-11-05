@@ -56,7 +56,6 @@ class FriendsLeaderboardViewController: UIViewController {
         setupGradientBackground()
         // Initialize the BarChartView programmatically
         setupBarChartView()
-        addRandomCircles()
         // Set up the action button
         
         // Call the function to fetch friends and display them on the chart

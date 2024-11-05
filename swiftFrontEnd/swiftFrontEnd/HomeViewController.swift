@@ -10,15 +10,49 @@ import UIKit
 class HomeViewController: UIViewController {
 
     @IBOutlet weak var usernameTextLabel: UILabel!
+    @IBOutlet weak var dailyQuestButton: UIButton!
+    @IBOutlet weak var translateButton: UIButton!
+    @IBOutlet weak var friendsButton: UIButton!
+    @IBOutlet weak var learnButton: UIButton!
+    @IBOutlet weak var createContentButton: UIButton!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         if let username = UserSession.shared.username {
             usernameTextLabel.text = username
               }
         setupGradientBackground()
-        addRandomCircles()
+        // Setup button styles
+          setupButtonAppearance(button: dailyQuestButton, iconName: "calendar")
+          setupButtonAppearance(button: createContentButton, iconName: "square.and.pencil")
+          setupButtonAppearance(button: translateButton, iconName: "globe")
+          setupButtonAppearance(button: friendsButton, iconName: "person.2")
+          setupButtonAppearance(button: learnButton, iconName: "book")
         // Do any additional setup after loading the view.
     }
+    
+    private func setupButtonAppearance(button: UIButton, iconName: String) {
+        // Set icon and title for the button
+        let icon = UIImage(systemName: iconName)
+        button.setImage(icon, for: .normal)
+        
+        // Align icon to the left of the title
+        button.imageView?.contentMode = .scaleAspectFit
+        button.tintColor = .systemBlue // Customize color as needed
+        button.setTitleColor(.systemBlue, for: .normal)
+        
+        // Add padding between icon and title
+        button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -10, bottom: 0, right: 0)
+        button.titleEdgeInsets = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 0)
+        
+        // Round corners and add border
+        button.layer.cornerRadius = 10 // Adjust radius as needed
+        button.layer.borderWidth = 1
+        button.layer.borderColor = UIColor.systemBlue.cgColor
+        button.clipsToBounds = true
+    }
+    
+
     
     @IBAction func logOutButtonPressed(_ sender: Any) {
         
@@ -30,27 +64,6 @@ class HomeViewController: UIViewController {
            }
     }
     
-    private func addRandomCircles() {
-        let numberOfCircles = 8  // Number of random circles to generate
-        let circleColor = UIColor.systemBlue.withAlphaComponent(0.5).cgColor
-        
-        for _ in 0..<numberOfCircles {
-            let circleSize = CGFloat.random(in: 30...100)  // Random size for each circle
-            let circleLayer = CAShapeLayer()
-            let circlePath = UIBezierPath(
-                ovalIn: CGRect(
-                    x: CGFloat.random(in: 0...view.bounds.width - circleSize),
-                    y: CGFloat.random(in: 0...view.bounds.height - circleSize),
-                    width: circleSize,
-                    height: circleSize
-                )
-            )
-            
-            circleLayer.path = circlePath.cgPath
-            circleLayer.fillColor = circleColor
-            view.layer.insertSublayer(circleLayer, at: 1) // Insert above the gradient layer
-        }
-    }
     
     private func setupGradientBackground() {
         let gradientLayer = CAGradientLayer()

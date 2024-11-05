@@ -112,6 +112,10 @@ class AddAndSendFriendRequestsViewController: UIViewController, UITableViewDeleg
                    showAlert(message: "Please enter the username to send the request.")
                    return
                }
+        if currentUsername == targetUsername {
+               showAlert(message: "You cannot send a friend request to yourself.")
+               return
+           }
                
                // Call the function to send the friend request
                sendFriendRequestToBackend(fromUsername: currentUsername, toUsername: targetUsername)
