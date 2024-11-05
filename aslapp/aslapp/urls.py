@@ -28,6 +28,8 @@ from .views import request_password_reset, password_reset_confirm
 from . import views
 from .views import predict_letter_view
 from .views import predict_phrase_view
+from .views import daily_video_view
+from . import views
 
 urlpatterns = [
     path('auth/register/', register, name='register'),
@@ -41,7 +43,9 @@ urlpatterns = [
     path('friend-request/list/', views.get_friend_requests, name='get_friend_requests'),
     path('friends/list/', views.get_friends_list, name='get_friends_list'),
     path('predict-letter/', predict_letter_view, name='predict_letter'),
-    path('predict-phrase/', predict_phrase_view, name='predict_phrase')
+    path('predict-phrase/', predict_phrase_view, name='predict_phrase'),
+    path('daily-video/', daily_video_view, name='daily_video'),
+    path('upload-video/', views.upload_video_view, name='upload_video'),
  ]
 
 

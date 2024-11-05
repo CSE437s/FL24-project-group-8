@@ -19,39 +19,13 @@ from .models import LetterPredictor  # Import your class from models
 from .models import PhrasePredictor  # Import your class from models
 
 User = get_user_model()
+import random
+from datetime import date
+from .models import Video
+from .models import VideoSerializer
+import os
 
 @csrf_exempt
-# def request_password_reset(request):
-#     if request.method == 'POST':
-#         try:
-#             data = json.loads(request.body)
-#             email = data.get('email')
-
-#             if not email:
-#                 return JsonResponse({"error": "Email is required."}, status=400)
-
-#             users = User.objects.filter(email=email)
-
-#             if not users.exists():
-#                 return JsonResponse({"error": "User with this email does not exist."}, status=404)
-
-#             user = users.first()
-#             token = default_token_generator.make_token(user)
-#             uid = urlsafe_base64_encode(force_bytes(user.pk))
-#             reset_link = f"http://localhost:8000/auth/password-reset-confirm/{uid}/{token}/"
-#             subject = 'Password Reset'
-#             message = f'Click the link to reset your password: {reset_link}'
-#             from_email = settings.DEFAULT_FROM_EMAIL
-#             recipient_list = [email]
-
-#             send_mail(subject, message, from_email, recipient_list)
-
-#             return JsonResponse({"message": "Password reset email sent."}, status=200)
-
-#         except json.JSONDecodeError:
-#             return JsonResponse({"error": "Invalid JSON."}, status=400)
-
-#     return JsonResponse({"error": "Only POST requests are allowed."}, status=405)
 def request_password_reset(request):
     if request.method == 'POST':
         try:
@@ -378,3 +352,111 @@ def predict_phrase_view(request):
 
     return JsonResponse({"error": "Invalid request method. Only POST is allowed."}, status=400)
 
+# def get_daily_video():
+#     videos_directory = "aslapp/videos"
+
+#     # Get today's date to ensure consistent selection
+#     today = date.today()
+#     random.seed(today.toordinal())
+
+#     # List all video files in the directory
+#     video_files = [f for f in os.listdir(videos_directory) if f.endswith(('.mp4', '.MOV', '.avi', '.mkv'))]
+#     all_files = os.listdir(videos_directory)
+#     print(f"All files in directory: {all_files}")
+#     print(video_files)
+#     # Check if there are any video files
+#     if not video_files:
+#         return None
+
+#     # Select a random video file
+#     selected_video = random.choice(video_files)
+    
+#     # Construct the full path for the selected video file
+#     selected_video_path = os.path.join(videos_directory, selected_video)
+
+#     return selected_video_path
+
+def get_daily_video():
+    videos_directory = "aslapp/videos"
+
+    # Get today's date to ensure consistent selection
+    today = date.today()
+    random.seed(today.toordinal())
+
+    # List all video files in the directory
+    video_files = [f for f in os.listdir(videos_directory) if f.endswith(('.mp4', '.mov', '.avi', '.mkv'))]
+
+    # Debugging: Print all files and video files found
+    all_files = os.listdir(videos_directory)
+    print(f"All files in directory: {all_files}")
+    print(f"Video files found: {video_files}")
+
+    # Check if there are any video files
+    if not video_files:
+        return None
+
+    # Select a random video file
+    selected_video = random.choice(video_files)
+    
+    # Construct the full path for the selected video file
+    selected_video_path = os.path.join(videos_directory, selected_video)
+
+    return selected_video_path
+
+from django.http import FileResponse
+
+@csrf_exempt
+def daily_video_view(request):
+    if request.method == 'POST':
+        # Define the relative path to the video
+        video_path = os.path.join("aslapp", "videos", "1.MOV")
+        
+        # Ensure the file exists and send it as a response
+        if os.path.isfile(video_path):
+            return FileResponse(open(video_path, 'rb'), content_type='video/quicktime')
+        
+        # Return an error if the video file is not found
+        return JsonResponse({"error": "Video file not found"}, status=404)
+
+    return JsonResponse({"error": "Invalid request method. Only POST is allowed."}, status=400)
+
+@csrf_exempt
+def upload_video_view(request):
+    if request.method == 'POST':
+        # Parse JSON body
+        try:
+            body = json.loads(request.body)
+            word = body.get('word')
+            video_file = request.FILES.get('video')
+        except (json.JSONDecodeError, TypeError):
+            return JsonResponse({"error": "Invalid JSON format."}, status=400)
+
+        if not word or not video_file:
+            return JsonResponse({"error": "Please provide both a word and a video file."}, status=400)
+
+        # Sanitize the word to use as a filename (you may want to refine this further)
+        filename_safe_word = "".join(c for c in word if c.isalnum() or c in ('-', '_')).strip()
+        if not filename_safe_word:
+            return JsonResponse({"error": "Invalid word provided."}, status=400)
+
+        # Define the videos directory path
+        videos_directory = os.path.join(settings.BASE_DIR, "aslapp", "videos")
+        
+        # Delete all files in the videos directory
+        for filename in os.listdir(videos_directory):
+            file_path = os.path.join(videos_directory, filename)
+            try:
+                os.remove(file_path)
+            except Exception as e:
+                return JsonResponse({"error": f"Failed to delete file {filename}. Error: {str(e)}"}, status=500)
+
+        # Save the new file using the sanitized word as the filename
+        target_path = os.path.join(videos_directory, f'{filename_safe_word}.MOV')
+
+        with open(target_path, 'wb+') as destination:
+            for chunk in video_file.chunks():
+                destination.write(chunk)
+
+        return JsonResponse({"success": f"Video uploaded and saved as {filename_safe_word}.MOV"}, status=201)
+
+    return JsonResponse({"error": "Invalid request. Use POST method with JSON body containing a word and a video file."}, status=400)

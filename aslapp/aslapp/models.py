@@ -10,6 +10,7 @@ import mediapipe as mp
 import numpy as np
 from django.db import models
 from tensorflow.keras.models import load_model
+from rest_framework import serializers
 
 class User(AbstractUser):
     confirmation_token = models.CharField(max_length=32, blank=True, null=True)
@@ -197,3 +198,13 @@ class PhrasePredictor:
         prediction = self.model.predict(video_landmarks)
         predicted_label = self.label_encoder.inverse_transform([np.argmax(prediction)])[0]
         return self.labels_dict[int(predicted_label[0])]
+
+class Video(models.Model):
+    title = models.CharField(max_length=100)
+    video_file = models.FileField(upload_to='videos/')
+    upload_date = models.DateTimeField(auto_now_add=True)
+
+class VideoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Video
+        fields = ['id', 'title', 'video_file']

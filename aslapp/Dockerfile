@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y \
 
 # Install specific versions of Python dependencies
 RUN pip install --no-cache-dir \
-    numpy==1.24.0 \
+    numpy \
     Django==4.2.16 \
     dj-rest-auth==6.0.0 \
     django-allauth==65.0.1 \
@@ -23,7 +23,8 @@ RUN pip install --no-cache-dir \
     opencv-python==4.7.0.72 \
     mediapipe==0.10.15 \
     PyJWT==2.7.0 \
-    requests==2.28.1
+    requests==2.28.1 \
+    tensorflow==2.12.0
 
 # Copy the entire project into the container
 COPY . /app/
