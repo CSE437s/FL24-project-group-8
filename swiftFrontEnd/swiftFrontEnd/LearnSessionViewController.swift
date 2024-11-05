@@ -24,7 +24,7 @@ class LearnSessionViewController: UIViewController {
     }
     
     private func setupWebViews() {
-        let videoIds = ["0FcwzMq4iWg", "4Ll3OtqAzyw", "xaU2gVRJ1MxTbUut"] // Add more video IDs here
+        let videoIds = ["0FcwzMq4iWg", "4Ll3OtqAzyw", "bFv_mLwBvHc"] // Add more video IDs here
 
         for videoId in videoIds {
             let webView = WKWebView()
@@ -44,7 +44,8 @@ class LearnSessionViewController: UIViewController {
             // Setup the action button for each video
             let actionButton = UIButton(type: .system)
             actionButton.translatesAutoresizingMaskIntoConstraints = false
-            actionButton.setTitle("Action for \(videoId)", for: .normal)
+            actionButton.setTitle("Mark as Watched", for: .normal) // Change title here
+            actionButton.tag = webViews.count - 1 // Set tag to identify the button
             actionButton.addTarget(self, action: #selector(actionButtonTapped), for: .touchUpInside)
             scrollView.addSubview(actionButton)
             actionButtons.append(actionButton)
@@ -64,7 +65,7 @@ class LearnSessionViewController: UIViewController {
             
             // Set constraints for web views
             NSLayoutConstraint.activate([
-                webView.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: CGFloat(index) * (webViewHeight + spacing) + spacing),
+                webView.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: CGFloat(index) * (webViewHeight + descriptionHeight + buttonHeight + spacing * 3) + spacing),
                 webView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
                 webView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
                 webView.heightAnchor.constraint(equalToConstant: webViewHeight)
@@ -104,10 +105,18 @@ class LearnSessionViewController: UIViewController {
         }
     }
     
-    @objc private func actionButtonTapped() {
-        print("Button tapped!")
-    }
+    @objc private func actionButtonTapped(sender: UIButton) {
+        let videoIndex = sender.tag // Get the index from the button's tag
+               let videoId = ["0FcwzMq4iWg", "4Ll3OtqAzyw", "bFv_mLwBvHc"][videoIndex]
 
+               // Change button title to "Done"
+               sender.setTitle("Done", for: .normal)
+               
+               // Show alert to confirm action
+               let alert = UIAlertController(title: "Video Watched", message: "You have marked video \(videoId) as watched.", preferredStyle: .alert)
+               alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+               present(alert, animated: true, completion: nil)
+    }
 
 }
 
