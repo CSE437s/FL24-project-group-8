@@ -53,10 +53,9 @@ class FriendsLeaderboardViewController: UIViewController {
 
         // Set up the title label
         setupTitleLabel()
-        
+        setupGradientBackground()
         // Initialize the BarChartView programmatically
         setupBarChartView()
-
         // Set up the action button
         
         // Call the function to fetch friends and display them on the chart
@@ -72,6 +71,40 @@ class FriendsLeaderboardViewController: UIViewController {
         titleLabel.frame = CGRect(x: 0, y: 50, width: self.view.frame.size.width, height: 50)
         
         self.view.addSubview(titleLabel)
+    }
+    
+    private func setupGradientBackground() {
+        let gradientLayer = CAGradientLayer()
+        gradientLayer.colors = [
+            UIColor.systemBlue.withAlphaComponent(0.3).cgColor,
+            UIColor.systemTeal.withAlphaComponent(0.1).cgColor
+        ]
+        gradientLayer.startPoint = CGPoint(x: 0, y: 0)
+        gradientLayer.endPoint = CGPoint(x: 1, y: 1)
+        gradientLayer.frame = view.bounds
+        view.layer.insertSublayer(gradientLayer, at: 0)
+    }
+    
+    private func addRandomCircles() {
+        let numberOfCircles = 8  // Number of random circles to generate
+        let circleColor = UIColor.systemBlue.withAlphaComponent(0.5).cgColor
+        
+        for _ in 0..<numberOfCircles {
+            let circleSize = CGFloat.random(in: 30...100)  // Random size for each circle
+            let circleLayer = CAShapeLayer()
+            let circlePath = UIBezierPath(
+                ovalIn: CGRect(
+                    x: CGFloat.random(in: 0...view.bounds.width - circleSize),
+                    y: CGFloat.random(in: 0...view.bounds.height - circleSize),
+                    width: circleSize,
+                    height: circleSize
+                )
+            )
+            
+            circleLayer.path = circlePath.cgPath
+            circleLayer.fillColor = circleColor
+            view.layer.insertSublayer(circleLayer, at: 1) // Insert above the gradient layer
+        }
     }
     
     // Setup BarChartView programmatically
