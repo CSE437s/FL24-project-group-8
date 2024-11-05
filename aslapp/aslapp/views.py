@@ -17,6 +17,11 @@ from django.views import View
 from django.core.files.storage import default_storage
 from .models import LetterPredictor  # Import your class from models
 from .models import PhrasePredictor  # Import your class from models
+import random
+from datetime import date
+from .models import Video
+from .models import VideoSerializer
+import os
 
 User = get_user_model()
 
@@ -378,3 +383,162 @@ def predict_phrase_view(request):
 
     return JsonResponse({"error": "Invalid request method. Only POST is allowed."}, status=400)
 
+from django.http import JsonResponse, FileResponse, HttpResponse
+from wsgiref.util import FileWrapper
+
+@csrf_exempt
+def daily_video_view(request):
+    if request.method == 'POST':
+        # Define the relative path to the videos directory
+        videos_directory = os.path.join(settings.BASE_DIR, "aslapp", "videos")
+
+        # Get the list of video files in the directory
+        video_files = [f for f in os.listdir(videos_directory) if f.endswith(('.mp4', '.MOV', '.avi', '.mkv'))]
+
+        # Ensure there is at least one video file
+        if not video_files:
+            return JsonResponse({"error": "No video files found"}, status=404)
+
+        # Select the first video file (you can modify this logic as needed)
+        video_name = video_files[0]
+        video_path = os.path.join(videos_directory, video_name)
+
+        # Check if the video file exists
+        if os.path.isfile(video_path):
+            # Create a FileResponse for the video file
+            response = FileResponse(open(video_path, 'rb'), content_type='video/quicktime')
+            # Optionally set the content disposition to inline to play directly in the browser
+            response['Content-Disposition'] = f'inline; filename="{video_name}"'
+            # Include the video name in the headers
+            response['X-Video-Name'] = video_name  # Custom header with the video name
+            return response
+
+        return JsonResponse({"error": "Video file not found"}, status=404)
+
+    return JsonResponse({"error": "Invalid request method. Only POST is allowed."}, status=400)
+    # if request.method == 'POST':
+    #     # Define the relative path to the videos directory
+    #     videos_directory = os.path.join("aslapp", "videos")
+        
+    #     # Get the list of video files in the directory
+    #     video_files = [f for f in os.listdir(videos_directory) if f.endswith(('.mp4', '.MOV', '.avi', '.mkv'))]
+
+    #     # Ensure there is at least one video file
+    #     if not video_files:
+    #         return JsonResponse({"error": "No video files found"}, status=404)
+
+    #     # Get the name of the first video file
+    #     video_name = video_files[0]
+    #     video_path = os.path.join(videos_directory, video_name)
+
+    #     # Return the video file as a response
+    #     response = FileResponse(open(video_path, 'rb'), content_type='video/quicktime')
+
+    #     # Set a content disposition header if you want to send the video file as an attachment
+    #     response['Content-Disposition'] = f'inline; filename="{video_name}"'
+
+    #     return response
+
+    # return JsonResponse({"error": "Invalid request method. Only POST is allowed."}, status=400)
+    # if request.method == 'POST':
+    #     # Define the relative path to the video
+    #     video_path = os.path.join("aslapp", "videos", "1.MOV")
+
+    #     # Ensure the file exists and send it as a response
+    #     if os.path.isfile(video_path):
+    #         return FileResponse(open(video_path, 'rb'), content_type='video/quicktime')
+
+    #     # Return an error if the video file is not found
+    #     return JsonResponse({"error": "Video file not found"}, status=404)
+
+    # return JsonResponse({"error": "Invalid request method. Only POST is allowed."}, status=400)
+
+@csrf_exempt
+def get_video_name(request):
+    if request.method == 'GET':
+        # Define the relative path to the videos directory
+        videos_directory = os.path.join(settings.BASE_DIR, "aslapp", "videos")
+
+        # Get the list of video files in the directory
+        video_files = [f for f in os.listdir(videos_directory) if f.endswith(('.mp4', '.MOV', '.avi', '.mkv'))]
+
+        # Check if there is exactly one video file
+        if len(video_files) == 1:
+            video_name = video_files[0]
+            return JsonResponse({"video_name": video_name}, status=200)
+
+        return JsonResponse({"error": "There should be exactly one video file in the directory."}, status=404)
+
+    return JsonResponse({"error": "Invalid request method. Only GET is allowed."}, status=400)
+@csrf_exempt
+def upload_video_view(request):
+    if request.method == 'POST' and request.FILES.get('video'):
+        # Define the videos directory path
+        videos_directory = os.path.join(settings.BASE_DIR, "aslapp", "videos")
+        
+        # Delete all files in the videos directory
+        for filename in os.listdir(videos_directory):
+            file_path = os.path.join(videos_directory, filename)
+            try:
+                os.remove(file_path)
+            except Exception as e:
+                return JsonResponse({"error": f"Failed to delete file {filename}. Error: {str(e)}"}, status=500)
+
+        # Get the word from the form data
+        word = request.POST.get('word')
+        if not word:
+            return JsonResponse({"error": "Please provide a word as a form field."}, status=400)
+
+        # Save the new file as '{word}.MOV'
+        video_file = request.FILES['video']
+        target_path = os.path.join(videos_directory, f'{word}.MOV')
+
+        try:
+            with open(target_path, 'wb+') as destination:
+                for chunk in video_file.chunks():
+                    destination.write(chunk)
+        except Exception as e:
+            return JsonResponse({"error": f"Failed to save file. Error: {str(e)}"}, status=500)
+
+        return JsonResponse({"success": f"Video uploaded and saved as {word}.MOV"}, status=201)
+
+    return JsonResponse({"error": "Invalid request. Provide a video file with key 'video' and a 'word' field."}, status=400)
+# def upload_video_view(request):
+#     if request.method == 'POST':
+#         # Parse JSON body
+#         try:
+#             body = json.loads(request.body)
+#             word = body.get('word')
+#             video_file = request.FILES.get('video')
+#         except (json.JSONDecodeError, TypeError):
+#             return JsonResponse({"error": "Invalid JSON format."}, status=400)
+
+#         if not word or not video_file:
+#             return JsonResponse({"error": "Please provide both a word and a video file."}, status=400)
+
+#         # Sanitize the word to use as a filename (you may want to refine this further)
+#         filename_safe_word = "".join(c for c in word if c.isalnum() or c in ('-', '_')).strip()
+#         if not filename_safe_word:
+#             return JsonResponse({"error": "Invalid word provided."}, status=400)
+
+#         # Define the videos directory path
+#         videos_directory = os.path.join(settings.BASE_DIR, "aslapp", "videos")
+
+#         # Delete all files in the videos directory
+#         for filename in os.listdir(videos_directory):
+#             file_path = os.path.join(videos_directory, filename)
+#             try:
+#                 os.remove(file_path)
+#             except Exception as e:
+#                 return JsonResponse({"error": f"Failed to delete file {filename}. Error: {str(e)}"}, status=500)
+
+#         # Save the new file using the sanitized word as the filename
+#         target_path = os.path.join(videos_directory, f'{filename_safe_word}.MOV')
+
+#         with open(target_path, 'wb+') as destination:
+#             for chunk in video_file.chunks():
+#                 destination.write(chunk)
+
+#         return JsonResponse({"success": f"Video uploaded and saved as {filename_safe_word}.MOV"}, status=201)
+
+#     return JsonResponse({"error": "Invalid request. Use POST method with JSON body containing a word and a video file."}, status=400)
