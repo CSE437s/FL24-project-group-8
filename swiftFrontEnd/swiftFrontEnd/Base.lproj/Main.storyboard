@@ -272,15 +272,6 @@
                                     <segue destination="qQO-iF-eCT" kind="presentation" id="DcA-P5-e2J"/>
                                 </connections>
                             </button>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="H3v-1Z-EqT">
-                                <rect key="frame" x="127" y="709" width="150" height="82"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <state key="normal" title="Button"/>
-                                <buttonConfiguration key="configuration" style="plain" title="Starting phrases"/>
-                                <connections>
-                                    <segue destination="zGm-sk-QvP" kind="show" id="ssg-vf-U5K"/>
-                                </connections>
-                            </button>
                             <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" editable="NO" textAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="wNG-Id-a3h">
                                 <rect key="frame" x="-1" y="233" width="393" height="107"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -291,12 +282,21 @@
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                             </textView>
                             <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Kxs-HQ-ZLD">
-                                <rect key="frame" x="158" y="736" width="75" height="35"/>
+                                <rect key="frame" x="160" y="768" width="75" height="35"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="plain" title="Button"/>
                                 <connections>
                                     <segue destination="zGm-sk-QvP" kind="show" id="3kg-j3-qO5"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="H3v-1Z-EqT">
+                                <rect key="frame" x="122" y="702" width="150" height="82"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" title="Starting phrases"/>
+                                <connections>
+                                    <segue destination="zGm-sk-QvP" kind="show" id="ssg-vf-U5K"/>
                                 </connections>
                             </button>
                         </subviews>
@@ -914,10 +914,7 @@
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>
-        <segue reference="bft-sf-h2U"/>
-        <segue reference="lC6-Ht-34O"/>
-        <segue reference="DcA-P5-e2J"/>
-        <segue reference="Rs1-am-RRc"/>
+        <segue reference="3kg-j3-qO5"/>
         <segue reference="Kl6-7V-zGS"/>
     </inferredMetricsTieBreakers>
     <resources>
