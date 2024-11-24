@@ -17,6 +17,8 @@ class HomeViewController: UIViewController {
     @IBOutlet weak var friendsButton: UIButton!
     @IBOutlet weak var learnButton: UIButton!
     @IBOutlet weak var createContentButton: UIButton!
+    @IBOutlet weak var startingPhrasesButton: UIButton!
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -43,6 +45,7 @@ class HomeViewController: UIViewController {
           setupButtonAppearance(button: translateButton, iconName: "globe")
           setupButtonAppearance(button: friendsButton, iconName: "person.2")
           setupButtonAppearance(button: learnButton, iconName: "book")
+        setupButtonAppearance(button: startingPhrasesButton, iconName: "rectangle.and.pencil.and.ellipsis.rtl")
         // Do any additional setup after loading the view.
         scheduleDailyQuestReminder() // Schedule the notification
     }
