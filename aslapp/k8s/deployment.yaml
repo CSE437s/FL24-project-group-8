@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aslapp
+  labels:
+    app: aslapp
+spec:
+  selector: 
+    matchLabels:
+      app: aslapp
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: aslapp
+    spec:
+      containers:
+      - image: aslapp:aslapp
+        imagePullPolicy: Never
+        name: aslapp
+        command: ["python", "manage.py", "runserver", "0.0.0.0:3000"]
+        ports:
+          - containerPort: 3000
+        env:
+          - name: APP_APPLICATION__HOST
+            value: 0.0.0.0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aslapp
+spec:
+  type: LoadBalancer
+  selector:
+    app: aslapp
+  ports:
+  - port: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: aslapp-ingress
+spec:
+  rules:
+  - http:
+      paths:
+      - pathType: Prefix
+        path: /
+        backend:
+          service:
+            name: aslapp
+            port:
+              number: 3000
