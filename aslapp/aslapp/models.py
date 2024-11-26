@@ -13,6 +13,8 @@ from tensorflow.keras.models import load_model
 from rest_framework import serializers
 class User(AbstractUser):
     confirmation_token = models.CharField(max_length=32, blank=True, null=True)
+    points = models.IntegerField(default=0)
+    streaks = models.IntegerField(default=0)
 
 # Get the custom user model
 User = get_user_model()

@@ -3,6 +3,7 @@ from django.core.mail import send_mail
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.contrib.auth.decorators import login_required
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import default_token_generator
 from django.views.decorators.csrf import csrf_exempt
@@ -335,6 +336,108 @@ def activate(request, uidb64, token):
         user = None
 
     return render(request, 'activation_invalid.html')
+
+
+@csrf_exempt
+@login_required
+def update_points(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            # Get the username from the request body
+            username = data.get('username')
+            if not username:
+                return JsonResponse({"error": "Username is required."}, status=400)
+
+            try:
+                user = User.objects.get(username=username)  # Fetch user by username
+            except User.DoesNotExist:
+                return JsonResponse({"error": "User not found."}, status=404)
+            
+            points = data.get('points')
+            if points is None:
+                return JsonResponse({"error": "Points value is required."}, status=400)
+            
+            # Update user's points
+            user_profile, created = UserProfile.objects.get_or_create(user=user)
+            user_profile.points = points
+            user_profile.save()
+
+            return JsonResponse({"message": "Points updated successfully."}, status=200)
+
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON."}, status=400)
+
+    return JsonResponse({"error": "Only POST requests are allowed."}, status=405)
+
+
+@csrf_exempt
+@login_required
+def update_streak(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            # Get the username from the request body
+            username = data.get('username')
+            if not username:
+                return JsonResponse({"error": "Username is required."}, status=400)
+
+            try:
+                user = User.objects.get(username=username)  # Fetch user by username
+            except User.DoesNotExist:
+                return JsonResponse({"error": "User not found."}, status=404)
+
+            streak = data.get('streak')
+            if streak is None:
+                return JsonResponse({"error": "Streak value is required."}, status=400)
+            
+            # Update user's streak
+            user_profile, created = UserProfile.objects.get_or_create(user=user)
+            user_profile.streak = streak
+            user_profile.save()
+
+            return JsonResponse({"message": "Streak updated successfully."}, status=200)
+
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON."}, status=400)
+
+    return JsonResponse({"error": "Only POST requests are allowed."}, status=405)
+
+
+
+@login_required
+def get_points(request):
+    username = request.GET.get('username')  # Retrieve username from query parameters
+    if not username:
+        return JsonResponse({"error": "Username is required."}, status=400)
+
+    try:
+        user = User.objects.get(username=username)  # Get user by username
+        user_profile = UserProfile.objects.get(user=user)
+
+        return JsonResponse({"points": user_profile.points}, status=200)
+    except User.DoesNotExist:
+        return JsonResponse({"error": "User not found."}, status=404)
+    except UserProfile.DoesNotExist:
+        return JsonResponse({"error": "User profile not found."}, status=404)
+
+
+@login_required
+def get_streak(request):
+    username = request.GET.get('username')  # Retrieve username from query parameters
+    if not username:
+        return JsonResponse({"error": "Username is required."}, status=400)
+
+    try:
+        user = User.objects.get(username=username)  # Get user by username
+        user_profile = UserProfile.objects.get(user=user)
+
+        return JsonResponse({"streak": user_profile.streak}, status=200)
+    except User.DoesNotExist:
+        return JsonResponse({"error": "User not found."}, status=404)
+    except UserProfile.DoesNotExist:
+        return JsonResponse({"error": "User profile not found."}, status=404)
+
 
 
 @csrf_exempt

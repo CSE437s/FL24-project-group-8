@@ -19,6 +19,8 @@ class HomeViewController: UIViewController {
     @IBOutlet weak var createContentButton: UIButton!
     @IBOutlet weak var startingPhrasesButton: UIButton!
     
+    @IBOutlet weak var points: UILabel!
+    @IBOutlet weak var streaks: UILabel!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -33,6 +35,8 @@ class HomeViewController: UIViewController {
                 print("Notification permission denied.")
             }
         }
+        
+        updatePointsAndStreaks()
         
         
         if let username = UserSession.shared.username {
@@ -49,6 +53,107 @@ class HomeViewController: UIViewController {
         // Do any additional setup after loading the view.
         scheduleDailyQuestReminder() // Schedule the notification
     }
+
+
+    
+    func updatePointsAndStreaks() {
+        // Fetch and update points
+        getPointsToDisplay { points, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("Failed to fetch points: \(error.localizedDescription)")
+                    self.points.text = "Error"
+                } else if let points = points {
+                    self.points.text = "\(points)"  // Update the UI with the points value
+                } else {
+                    self.points.text = "No points"
+                }
+            }
+        }
+        
+        // Fetch and update streak
+        getStreaksToDisplay { streak, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("Failed to fetch streak: \(error.localizedDescription)")
+                    self.streaks.text = "Error"
+                } else if let streak = streak {
+                    self.streaks.text = "\(streak)"  // Update the UI with the streak value
+                } else {
+                    self.streaks.text = "No streak"
+                }
+            }
+        }
+    }
+    
+    func getPointsToDisplay(completion: @escaping (Int?, Error?) -> Void) {
+        guard let username = UserSession.shared.username else {
+            completion(nil, NSError(domain: "UserSession", code: 404, userInfo: [NSLocalizedDescriptionKey: "Username not found in UserSession."]))
+            return
+        }
+
+        guard let url = URL(string: "http://127.0.0.1:8000/user/get-points/?username=\(username)") else {
+            completion(nil, NSError(domain: "Invalid URL", code: 400, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"]))
+            return
+        }
+
+        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                completion(nil, error)
+                return
+            }
+            
+            guard let data = data else {
+                completion(nil, NSError(domain: "No Data", code: 404, userInfo: [NSLocalizedDescriptionKey: "No data received."]))
+                return
+            }
+
+            do {
+                let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
+                let points = json?["points"] as? Int
+                completion(points, nil)
+            } catch {
+                completion(nil, error)
+            }
+        }
+
+        task.resume()
+    }
+
+    func getStreaksToDisplay(completion: @escaping (Int?, Error?) -> Void) {
+        guard let username = UserSession.shared.username else {
+            completion(nil, NSError(domain: "UserSession", code: 404, userInfo: [NSLocalizedDescriptionKey: "Username not found in UserSession."]))
+            return
+        }
+
+        guard let url = URL(string: "http://127.0.0.1:8000/user/get-streak/?username=\(username)") else {
+            completion(nil, NSError(domain: "Invalid URL", code: 400, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"]))
+            return
+        }
+
+        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                completion(nil, error)
+                return
+            }
+            
+            guard let data = data else {
+                completion(nil, NSError(domain: "No Data", code: 404, userInfo: [NSLocalizedDescriptionKey: "No data received."]))
+                return
+            }
+
+            do {
+                let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
+                let streak = json?["streak"] as? Int
+                completion(streak, nil)
+            } catch {
+                completion(nil, error)
+            }
+        }
+
+        task.resume()
+    }
+
     
     func scheduleDailyQuestReminder() {
         // Clear existing notifications

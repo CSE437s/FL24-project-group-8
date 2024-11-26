@@ -52,6 +52,10 @@ urlpatterns = [
     path('upload-video-to-folder/', views.upload_video_to_folder_view, name='upload_video_to_folder'),
     path('get-all-folders/', views.get_all_folders_view, name='get_all_folders'),
     path('get-videos-from-folder/<str:folder_name>/', views.get_videos_from_folder_view, name='get_videos_from_folder'),
+    path('user/update-points/', views.update_points, name='update_points'),
+    path('user/update-streak/', views.update_streak, name='update_streak'),
+    path('user/get-points/', views.get_points, name='get_points'),
+    path('user/get-streak/', views.get_streak, name='get_streak'),
  ]
 
 
