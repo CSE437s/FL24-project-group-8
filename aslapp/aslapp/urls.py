@@ -31,7 +31,8 @@ from .views import predict_phrase_view
 from .views import daily_video_view
 from . import views
 from .views import get_video_name
-
+from .views import upload_video_to_folder_view
+from . import views
 urlpatterns = [
     path('auth/register/', register, name='register'),
     path('auth/activate/<uidb64>/<token>/', activate, name='activate'),
@@ -48,6 +49,9 @@ urlpatterns = [
     path('daily-video/', daily_video_view, name='daily_video'),
     path('upload-video/', views.upload_video_view, name='upload_video'),
     path('get-video-name/', get_video_name, name='get_video_name'),
+    path('upload-video-to-folder/', views.upload_video_to_folder_view, name='upload_video_to_folder'),
+    path('get-all-folders/', views.get_all_folders_view, name='get_all_folders'),
+    path('get-videos-from-folder/<str:folder_name>/', views.get_videos_from_folder_view, name='get_videos_from_folder'),
  ]
 
 

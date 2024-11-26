@@ -1,0 +1,15 @@
+docker build -t aslapp:aslapp2 .
+
+kind load docker-image aslapp:aslapp3
+
+kubectl set image deployment/aslapp aslapp=aslapp:aslapp3
+
+kubectl rollout restart deployment/aslapp
+
+kubectl describe deployment/aslapp | grep Image
+
+kubectl logs -f <pod-name>
+
+kubectl describe ingress aslapp-ingress
+
+kubectl apply -f k8s/deployment.yaml
