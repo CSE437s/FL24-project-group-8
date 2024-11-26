@@ -15,10 +15,49 @@ class Quest1ViewController: UIViewController, UIImagePickerControllerDelegate, U
     // Outlets for the third letter
     @IBOutlet weak var predictedCharacterLabel3: UILabel!
     @IBOutlet weak var resultImageView3: UIImageView!
+    
+    @IBOutlet weak var capturePhotoButton1: UIButton! // Sign B!
+    @IBOutlet weak var capturePhotoButton2: UIButton! // Sign A!
+    @IBOutlet weak var capturePhotoButton3: UIButton! // Sign L!
 
     override func viewDidLoad() {
         super.viewDidLoad()
         clearInitialUI()
+        setupButtonAppearance(button: capturePhotoButton1, iconName: "camera")
+            setupButtonAppearance(button: capturePhotoButton2, iconName: "camera")
+            setupButtonAppearance(button: capturePhotoButton3, iconName: "camera")
+        setupGradientBackground()
+        setupLabelAppearance(label: predictedCharacterLabel1)
+            setupLabelAppearance(label: predictedCharacterLabel2)
+            setupLabelAppearance(label: predictedCharacterLabel3)
+        setupImageViewAppearance(imageView: resultImageView1)
+            setupImageViewAppearance(imageView: resultImageView2)
+            setupImageViewAppearance(imageView: resultImageView3)
+    }
+    
+    private func setupImageViewAppearance(imageView: UIImageView) {
+        imageView.layer.cornerRadius = 10
+        imageView.layer.borderWidth = 1
+        imageView.layer.borderColor = UIColor.systemGray.cgColor
+        imageView.clipsToBounds = true
+    }
+    
+    private func setupLabelAppearance(label: UILabel) {
+        label.textAlignment = .center
+        label.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+        label.textColor = .darkGray
+    }
+    
+    private func setupGradientBackground() {
+        let gradientLayer = CAGradientLayer()
+        gradientLayer.colors = [
+            UIColor.systemBlue.withAlphaComponent(0.3).cgColor,
+            UIColor.systemTeal.withAlphaComponent(0.1).cgColor
+        ]
+        gradientLayer.startPoint = CGPoint(x: 0, y: 0)
+        gradientLayer.endPoint = CGPoint(x: 1, y: 1)
+        gradientLayer.frame = view.bounds
+        view.layer.insertSublayer(gradientLayer, at: 0)
     }
 
     func clearInitialUI() {
@@ -42,6 +81,23 @@ class Quest1ViewController: UIViewController, UIImagePickerControllerDelegate, U
 
     @IBAction func capturePhotoButtonTapped3(_ sender: UIButton) {
         presentImagePicker(tag: 3)
+    }
+    
+    private func setupButtonAppearance(button: UIButton, iconName: String) {
+        let icon = UIImage(systemName: iconName)
+        button.setImage(icon, for: .normal)
+        
+        button.imageView?.contentMode = .scaleAspectFit
+        button.tintColor = .systemBlue
+        button.setTitleColor(.systemBlue, for: .normal)
+        
+        button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -10, bottom: 0, right: 0)
+        button.titleEdgeInsets = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 0)
+        
+        button.layer.cornerRadius = 10
+        button.layer.borderWidth = 1
+        button.layer.borderColor = UIColor.systemBlue.cgColor
+        button.clipsToBounds = true
     }
 
     // Present image picker and assign the tag to track which button called it
