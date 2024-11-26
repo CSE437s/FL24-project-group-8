@@ -22,6 +22,8 @@ from datetime import date
 from .models import Video
 from .models import VideoSerializer
 import os
+from django.conf import settings
+import logging
 
 User = get_user_model()
 
@@ -458,15 +460,15 @@ def get_video_name(request):
     if request.method == 'GET':
         # Define the relative path to the videos directory
         videos_directory = os.path.join(settings.BASE_DIR, "aslapp", "videos")
-
+        # logger.debug(f"Videos directory: {settings.BASE_DIR}")
+        # logger.debug(f"Videos directory: {videos_directory}")
         # Get the list of video files in the directory
-        video_files = [f for f in os.listdir(videos_directory) if f.endswith(('.mp4', '.MOV', '.avi', '.mkv'))]
+        video_files = [f for f in os.listdir(videos_directory) if f.endswith(('.mp4', '.mov', '.MOV', '.avi', '.mkv'))]
 
         # Check if there is exactly one video file
         if len(video_files) == 1:
             video_name = video_files[0]
             return JsonResponse({"video_name": video_name}, status=200)
-
         return JsonResponse({"error": "There should be exactly one video file in the directory."}, status=404)
 
     return JsonResponse({"error": "Invalid request method. Only GET is allowed."}, status=400)
@@ -542,3 +544,77 @@ def upload_video_view(request):
 #         return JsonResponse({"success": f"Video uploaded and saved as {filename_safe_word}.MOV"}, status=201)
 
 #     return JsonResponse({"error": "Invalid request. Use POST method with JSON body containing a word and a video file."}, status=400)
+
+@csrf_exempt
+def upload_video_to_folder_view(request):
+    if request.method == 'POST' and request.FILES.get('video'):
+        # Define the videos directory path
+        videos_directory = os.path.join(settings.BASE_DIR, "aslapp", "videos")
+
+        # Get the name from the form data
+        name = request.POST.get('name')
+        if not name:
+            return JsonResponse({"error": "Please provide a name as a form field."}, status=400)
+
+        # Define the target folder path
+        folder_path = os.path.join(videos_directory, name)
+
+        # Create the folder if it doesn't exist
+        try:
+            os.makedirs(folder_path, exist_ok=True)
+        except Exception as e:
+            return JsonResponse({"error": f"Failed to create folder '{name}'. Error: {str(e)}"}, status=500)
+
+        # Save the uploaded file in the folder
+        video_file = request.FILES['video']
+        target_path = os.path.join(folder_path, video_file.name)
+
+        try:
+            with open(target_path, 'wb+') as destination:
+                for chunk in video_file.chunks():
+                    destination.write(chunk)
+        except Exception as e:
+            return JsonResponse({"error": f"Failed to save file. Error: {str(e)}"}, status=500)
+
+        return JsonResponse({"success": f"Video uploaded and saved in folder '{name}' as {video_file.name}"}, status=201)
+
+    return JsonResponse({"error": "Invalid request. Provide a video file with key 'video' and a 'name' field."}, status=400)
+
+@csrf_exempt
+def get_all_folders_view(request):
+    if request.method == 'GET':
+        # Define the videos directory path
+        videos_directory = os.path.join(settings.BASE_DIR, "aslapp", "videos")
+
+        try:
+            # List all directories (folders) in the videos directory
+            folder_names = [
+                f for f in os.listdir(videos_directory)
+                if os.path.isdir(os.path.join(videos_directory, f))
+            ]
+
+            # Return the list of folder names
+            return JsonResponse({"folders": folder_names}, status=200)
+
+        except Exception as e:
+            return JsonResponse({"error": f"Failed to retrieve folders. Error: {str(e)}"}, status=500)
+
+    return JsonResponse({"error": "Invalid request. Use GET method."}, status=400)
+
+@csrf_exempt
+def get_videos_from_folder_view(request, folder_name):
+    # Define the path to the videos directory
+    videos_directory = os.path.join(settings.BASE_DIR, "aslapp", "videos")
+
+    # Build the path to the specific folder
+    folder_path = os.path.join(videos_directory, folder_name)
+
+    # Check if the folder exists
+    if not os.path.exists(folder_path):
+        return JsonResponse({"error": f"The folder '{folder_name}' does not exist."}, status=404)
+
+    # Get the list of video files in the folder
+    video_files = [f for f in os.listdir(folder_path) if f.endswith(('.mp4', '.MOV', '.avi', '.mkv', '.mov'))]
+
+    # Return the list of video names
+    return JsonResponse({"videos": video_files}, status=200)

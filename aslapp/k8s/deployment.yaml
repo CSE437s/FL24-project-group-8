@@ -15,15 +15,23 @@ spec:
         app: aslapp
     spec:
       containers:
-      - image: aslapp:aslapp
+      - image: aslapp:aslapp2
         imagePullPolicy: Never
         name: aslapp
-        command: ["python", "manage.py", "runserver", "0.0.0.0:3000"]
+        command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
         ports:
-          - containerPort: 3000
+          - containerPort: 8000
         env:
           - name: APP_APPLICATION__HOST
             value: 0.0.0.0
+        volumeMounts:
+        - name: videos
+          mountPath: /app/aslapp/videos   # Mount to the container's /app/aslapp/videos path
+      volumes:
+      - name: videos
+        hostPath:
+          path: /Users/ryandickerson/Desktop/WUBER/FL24-project-group-8/aslapp/aslapp/videos
+          type: Directory
 ---
 apiVersion: v1
 kind: Service
@@ -34,20 +42,58 @@ spec:
   selector:
     app: aslapp
   ports:
-  - port: 3000
+  - port: 8000
+    targetPort: 8000
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: aslapp-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
 spec:
   rules:
   - http:
       paths:
+      - path: /upload-video-to-folder/
+        pathType: Prefix
+        backend:
+          service:
+            name: aslapp  
+            port:
+              number: 8000 
+      - path: /predict-letter/
+        pathType: Prefix
+        backend:
+          service:
+            name: aslapp  
+            port:
+              number: 8000     
+      - path: /get-video-name/
+        pathType: Prefix
+        backend:
+          service:
+            name: aslapp 
+            port:
+              number: 8000 
+      - path: /get-all-folders/
+        pathType: Prefix
+        backend:
+          service:
+            name: aslapp 
+            port:
+              number: 8000 
       - pathType: Prefix
         path: /
         backend:
           service:
             name: aslapp
             port:
-              number: 3000
+              number: 8000
+      - path: /get-videos-from-folder/
+        pathType: Prefix
+        backend:
+          service:
+            name: aslapp
+            port:
+              number: 8000
