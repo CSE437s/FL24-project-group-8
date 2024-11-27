@@ -16,4 +16,5 @@ class UserSession {
     
     // Variable to store the username
     var username: String?
+    var lastLoginTimestamp: Date?
 }

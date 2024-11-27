@@ -359,7 +359,7 @@ def update_points(request):
                 return JsonResponse({"error": "Points value is required."}, status=400)
             
             # Update user's points
-            user_profile, created = UserProfile.objects.get_or_create(user=user)
+            user_profile, created = User.objects.get_or_create(username=username)
             user_profile.points = points
             user_profile.save()
 
@@ -387,13 +387,13 @@ def update_streak(request):
             except User.DoesNotExist:
                 return JsonResponse({"error": "User not found."}, status=404)
 
-            streak = data.get('streak')
+            streak = data.get('streaks')
             if streak is None:
                 return JsonResponse({"error": "Streak value is required."}, status=400)
             
             # Update user's streak
-            user_profile, created = UserProfile.objects.get_or_create(user=user)
-            user_profile.streak = streak
+            user_profile, created = User.objects.get_or_create(username=username)
+            user_profile.streaks = streak
             user_profile.save()
 
             return JsonResponse({"message": "Streak updated successfully."}, status=200)
@@ -413,12 +413,12 @@ def get_points(request):
 
     try:
         user = User.objects.get(username=username)  # Get user by username
-        user_profile = UserProfile.objects.get(user=user)
+        
 
-        return JsonResponse({"points": user_profile.points}, status=200)
+        return JsonResponse({"points": user.points}, status=200)
     except User.DoesNotExist:
         return JsonResponse({"error": "User not found."}, status=404)
-    except UserProfile.DoesNotExist:
+    except User.DoesNotExist:
         return JsonResponse({"error": "User profile not found."}, status=404)
 
 
@@ -428,16 +428,16 @@ def get_streak(request):
     if not username:
         return JsonResponse({"error": "Username is required."}, status=400)
 
+    User = get_user_model()  # Dynamically fetch the custom User model
+
     try:
         user = User.objects.get(username=username)  # Get user by username
-        user_profile = UserProfile.objects.get(user=user)
 
-        return JsonResponse({"streak": user_profile.streak}, status=200)
+        return JsonResponse({"streak": user.streaks}, status=200)
     except User.DoesNotExist:
         return JsonResponse({"error": "User not found."}, status=404)
-    except UserProfile.DoesNotExist:
+    except User.DoesNotExist:
         return JsonResponse({"error": "User profile not found."}, status=404)
-
 
 
 @csrf_exempt
