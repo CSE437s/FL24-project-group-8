@@ -40,7 +40,10 @@ class ChartMarker: MarkerView {
 
 class FriendsLeaderboardViewController: UIViewController {
     
+    var scrollView: UIScrollView!
     var barChartView: BarChartView!
+    var streakChartView: BarChartView!
+
     
     // Add title label
     var titleLabel: UILabel!
@@ -52,15 +55,161 @@ class FriendsLeaderboardViewController: UIViewController {
         super.viewDidLoad()
 
         // Set up the title label
+        setupScrollView()
         setupTitleLabel()
         setupGradientBackground()
         // Initialize the BarChartView programmatically
         setupBarChartView()
+        setupStreakChartView()
         // Set up the action button
         
         // Call the function to fetch friends and display them on the chart
         fetchFriendsList()
     }
+    
+    func setupStreakChartView() {
+        // Initialize the second BarChartView (Streaks)
+        streakChartView = BarChartView()
+        
+        // Set the frame for the second chart (Streaks)
+        let chartHeight = self.view.frame.size.height * 0.25
+        streakChartView.frame = CGRect(x: 0, y: barChartView.frame.maxY + 20, width: self.view.frame.size.width, height: chartHeight)
+        
+        // Add it to the scroll view
+        scrollView.addSubview(streakChartView)
+        
+        // Customize the appearance of the second chart (Streaks)
+        streakChartView.noDataText = "No data available"
+        streakChartView.chartDescription.enabled = false
+        streakChartView.legend.enabled = true
+    }
+
+    func fetchFriendStreak(for username: String, completion: @escaping (Int?, String?) -> Void) {
+        let urlString = "http://127.0.0.1:8000/user/get-streak/?username=\(username)"
+        
+        guard let url = URL(string: urlString) else {
+            completion(nil, "Invalid URL.")
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(nil, "Request failed with error: \(error.localizedDescription)")
+                return
+            }
+            
+            guard let data = data else {
+                completion(nil, "No data received.")
+                return
+            }
+            
+            do {
+                if let responseJson = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                   let streak = responseJson["streak"] as? Int {
+                    print("Fetched streak for \(username): \(streak)")  // Debug print
+                    completion(streak, nil)
+                } else {
+                    completion(nil, "Invalid response format.")
+                }
+            } catch {
+                completion(nil, "Failed to parse response data.")
+            }
+        }
+        
+        task.resume()
+    }
+    
+
+    func updateChartWithStreaks(_ friends: [Any]) {
+        var entries = [BarChartDataEntry]()
+        var friendNames = [String]()
+
+        let dispatchGroup = DispatchGroup()
+
+        for (index, friend) in friends.enumerated() {
+            if let friendData = friend as? [String: Any], let friendUsername = friendData["friend__username"] as? String {
+                
+                dispatchGroup.enter() // Enter before starting the request
+                
+                fetchFriendStreak(for: friendUsername) { streak, error in
+                    if let error = error {
+                        print("Error fetching streak for \(friendUsername): \(error)")
+                        dispatchGroup.leave() // Leave the group on error
+                        return
+                    }
+                    
+                    guard let streak = streak else {
+                        print("No streak found for \(friendUsername)")
+                        dispatchGroup.leave() // Leave the group if no streak
+                        return
+                    }
+                    
+                    let entry = BarChartDataEntry(x: Double(index), y: Double(streak))
+                    entries.append(entry)
+                    friendNames.append(friendUsername)
+                    
+                    dispatchGroup.leave() // Leave after fetching the streak
+                }
+            } else {
+                print("Invalid friend data: \(friend)")
+            }
+        }
+
+        dispatchGroup.notify(queue: .main) {
+            if entries.isEmpty {
+                print("No friends or streaks to display.")
+                return
+            }
+            
+            let dataSet = BarChartDataSet(entries: entries, label: "Streaks")
+            dataSet.colors = ChartColorTemplates.colorful()  // Customize colors
+
+            let data = BarChartData(dataSet: dataSet)
+            self.streakChartView.data = data
+            
+            self.configureStreakChartAppearance(friendNames)
+        }
+    }
+
+    func configureStreakChartAppearance(_ friendNames: [String]) {
+        // Set the labels for the x-axis of the streak chart
+        streakChartView.xAxis.valueFormatter = IndexAxisValueFormatter(values: friendNames)
+        streakChartView.xAxis.granularity = 1
+        streakChartView.xAxis.labelPosition = .bottom
+        streakChartView.xAxis.labelRotationAngle = -45
+        streakChartView.xAxis.wordWrapEnabled = true
+        streakChartView.xAxis.labelCount = friendNames.count
+
+        // Customize y-axis (streaks)
+        streakChartView.leftAxis.axisMinimum = 0
+        streakChartView.rightAxis.enabled = false
+        streakChartView.legend.enabled = true
+
+        streakChartView.animate(yAxisDuration: 1.0)
+    }
+    
+    
+    func setupScrollView() {
+        // Initialize the UIScrollView
+        scrollView = UIScrollView()
+        
+        // Set the scroll view's frame to match the width of the screen
+        scrollView.frame = CGRect(x: 0, y: 0, width: self.view.frame.size.width, height: self.view.frame.size.height)
+        
+        // Add the scroll view to the main view
+        self.view.addSubview(scrollView)
+        
+        // Enable scrolling and set content size
+        scrollView.isScrollEnabled = true
+        scrollView.contentSize = CGSize(width: self.view.frame.size.width, height: self.view.frame.size.height * 1.5)
+    }
+    
+    
+    
     
     // Function to setup title label
     func setupTitleLabel() {
@@ -108,18 +257,19 @@ class FriendsLeaderboardViewController: UIViewController {
     }
     
     // Setup BarChartView programmatically
+ 
     func setupBarChartView() {
-        // Initialize BarChartView
+        // Initialize the first BarChartView (Leaderboard scores)
         barChartView = BarChartView()
         
-        // Set the chart view's frame: 60% of screen height
-        let chartHeight = self.view.frame.size.height * 0.6
-        barChartView.frame = CGRect(x: 0, y: 150, width: self.view.frame.size.width, height: chartHeight)  // Adjust y-position to be below the title
+        // Set the frame for the first chart (Leaderboard)
+        let chartHeight = self.view.frame.size.height * 0.25
+        barChartView.frame = CGRect(x: 0, y: 0, width: self.view.frame.size.width, height: chartHeight)
         
-        // Add the chart view to the view hierarchy
-        self.view.addSubview(barChartView)
+        // Add it to the scroll view
+        scrollView.addSubview(barChartView)
         
-        // Customize the appearance of the chart
+        // Customize the appearance of the first chart
         barChartView.noDataText = "No data available"
         barChartView.chartDescription.enabled = false
         barChartView.legend.enabled = true
@@ -186,45 +336,150 @@ class FriendsLeaderboardViewController: UIViewController {
     }
 
     func updateChartWithFriends(_ friends: [Any]) {
-           var entries = [BarChartDataEntry]()
-           var friendNames = [String]()
+        var entries = [BarChartDataEntry]()
+        var friendNames = [String]()
 
-           // Iterate through the friends array
-           for (index, friend) in friends.enumerated() {
-               if let friendData = friend as? [String: Any], let friendUsername = friendData["friend__username"] as? String {
-                   let score = Int.random(in: 50...100)  // Random score for demonstration
-                   
-                   // Debugging: print out the friend data and score
-                   print("Friend username: \(friendUsername), Score: \(score)")
-                   
-                   let entry = BarChartDataEntry(x: Double(index), y: Double(score))
-                   entries.append(entry)
-                   friendNames.append(friendUsername)
-               } else {
-                   print("Invalid friend data: \(friend)")
-               }
-           }
+        // Create a DispatchGroup to handle async operations
+        let dispatchGroup = DispatchGroup()
 
-           // If no friends data or scores, print and return
-           if entries.isEmpty {
-               print("No friends or scores to display.")
-               return
-           }
+        // Iterate through the friends array
+        for (index, friend) in friends.enumerated() {
+            if let friendData = friend as? [String: Any], let friendUsername = friendData["friend__username"] as? String {
+                
+                // Step 1: Make a POST request to get points for each friend
+                dispatchGroup.enter() // Enter the group before starting the request
+                
+                // Fetch the points for each friend
+                fetchFriendPoints(for: friendUsername) { score, error in
+                    if let error = error {
+                        print("Error fetching points for \(friendUsername): \(error)")
+                        dispatchGroup.leave() // Leave the group if there's an error
+                        return
+                    }
+                    
+                    guard let score = score else {
+                        print("No score found for \(friendUsername)")
+                        dispatchGroup.leave() // Leave the group if score is nil
+                        return
+                    }
+                    
+                    // Step 2: Debugging - print out the friend data and score
+                    print("Friend username: \(friendUsername), Score: \(score)")
+                    
+                    // Create BarChartDataEntry for the score
+                    let entry = BarChartDataEntry(x: Double(index), y: Double(score))
+                    entries.append(entry)
+                    friendNames.append(friendUsername)
+                    
+                    // Leave the group after fetching the score
+                    dispatchGroup.leave()
+                }
+                
+                // Step 2: Fetch the streak for each friend (in parallel to score fetch)
+                dispatchGroup.enter() // Enter the group for streak fetching
+                
+                fetchFriendStreak(for: friendUsername) { streak, error in
+                    if let error = error {
+                        print("Error fetching streak for \(friendUsername): \(error)")
+                        dispatchGroup.leave() // Leave the group if there's an error
+                        return
+                    }
+                    
+                    guard let streak = streak else {
+                        print("No streak found for \(friendUsername)")
+                        dispatchGroup.leave() // Leave the group if streak is nil
+                        return
+                    }
+                    
+                    // Step 3: Debugging - print out the friend data and streak
+                    print("Friend username: \(friendUsername), Streak: \(streak)")
+                    
+                    // Optionally, you could use streak to update the chart, such as adding it as another bar or label
+                    // For example, if you want to visualize the streak, you could create a second bar for each friend.
+                    // Or use it as another data series in the chart.
+                    
+                    // You can add another BarChartDataEntry or modify the chart to display streak values.
+                    // For simplicity, we’ll print it for now:
+                    print("Streak for \(friendUsername): \(streak)")
+                    
+                    dispatchGroup.leave() // Leave the group after fetching the streak
+                }
+            } else {
+                print("Invalid friend data: \(friend)")
+            }
+        }
+        
+        // When all requests have completed, update the chart
+        dispatchGroup.notify(queue: .main) {
+            // If no friends data or scores, print and return
+            if entries.isEmpty {
+                print("No friends or scores to display.")
+                return
+            }
+            
+            // Set up the data set for scores
+            let dataSet = BarChartDataSet(entries: entries, label: "Leaderboard Scores")
+            dataSet.colors = ChartColorTemplates.joyful()  // Customize colors
 
-           // Set up the data set
-           let dataSet = BarChartDataSet(entries: entries, label: "Leaderboard Scores")
-           dataSet.colors = ChartColorTemplates.joyful()  // Customize colors
+            // Set up the bar chart data
+            let data = BarChartData(dataSet: dataSet)
+            self.barChartView.data = data
 
-           // Set up the bar chart data
-           let data = BarChartData(dataSet: dataSet)
-           barChartView.data = data
+            // Customize the chart appearance
+            self.configureChartAppearance(friendNames)
+            
+            // Add friend names on top of the bars
+            self.addFriendNamesOnBars(friendNames)
+        }
+    }
 
-           // Customize the chart appearance
-           configureChartAppearance(friendNames)
-           
-           // Add friend names on top of the bars
-           addFriendNamesOnBars(friendNames)
-       }
+    
+    func fetchFriendPoints(for username: String, completion: @escaping (Int?, String?) -> Void) {
+        // Construct the URL with the username appended to the path
+        let urlString = "http://127.0.0.1:8000/user/get-points/?username=\(username)"
+        
+        // Ensure the URL is valid
+        guard let url = URL(string: urlString) else {
+            completion(nil, "Invalid URL.")
+            return
+        }
+        
+        // Create the URLRequest
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"  // Since you're fetching data, you likely want to use GET
+        
+        // Set the Content-Type header to "application/json"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        // Perform the request
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(nil, "Request failed with error: \(error.localizedDescription)")
+                return
+            }
+            
+            guard let data = data else {
+                completion(nil, "No data received.")
+                return
+            }
+            
+            do {
+                // Attempt to parse the response data into a JSON object
+                if let responseJson = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                   let points = responseJson["points"] as? Int {
+                    // Return the score from the response
+                    completion(points, nil)
+                } else {
+                    completion(nil, "Invalid response format.")
+                }
+            } catch {
+                completion(nil, "Failed to parse response data.")
+            }
+        }
+        
+        task.resume()
+    }
+
 
     // Function to configure the chart's appearance (labels, axis, etc.)
     func configureChartAppearance(_ friendNames: [String]) {
@@ -247,16 +502,34 @@ class FriendsLeaderboardViewController: UIViewController {
 
     
        // Function to add friend names directly on top of the bars using ChartMarker
-       func addFriendNamesOnBars(_ friendNames: [String]) {
-           // Customizing the marker to show friend names on top of the bars
-           let marker = ChartMarker()
-           marker.chartView = barChartView
-           barChartView.marker = marker
-           
-           // Set the text to display the names of friends
-           marker.text = friendNames.joined(separator: ", ")
-       }
+    func addFriendNamesOnBars(_ friendNames: [String]) {
+        // Customizing the marker to show friend names on top of the bars
+        let marker = ChartMarker()
+        marker.chartView = barChartView
+        barChartView.marker = marker
 
+        // Use the index of each bar to set the label for that bar
+        for (index, name) in friendNames.enumerated() {
+            if let entry = barChartView.data?.dataSets[0].entryForIndex(index) {
+                // Dynamically calculate the label's position
+                let label = UILabel()
+                label.text = name
+                label.font = UIFont.systemFont(ofSize: 12)  // Adjust font size to fit the bar
+                label.textColor = UIColor.white
+                label.sizeToFit()  // Resize the label based on the text
+                
+                // Calculate position: center the label horizontally over the bar and adjust vertically
+                let xPos = CGFloat(entry.x) - (label.frame.size.width / 2)
+                let yPos = entry.y + 5  // Adjust 5 units above the bar for better positioning
+
+                // Set label's frame and position
+                label.frame = CGRect(x: xPos, y: yPos, width: label.frame.size.width, height: label.frame.size.height)
+
+                // Add the label to the chart view
+                barChartView.addSubview(label)
+            }
+        }
+    }
 
 
 }

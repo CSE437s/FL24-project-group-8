@@ -22,6 +22,7 @@ class StartingPhrases: UIViewController, UIImagePickerControllerDelegate, UINavi
 
     override func viewDidLoad() {
         super.viewDidLoad()
+
         clearInitialUI()
         setupButtonAppearance(button: capturePhotoButton1, iconName: "camera")
             setupButtonAppearance(button: capturePhotoButton2, iconName: "camera")
@@ -202,11 +203,144 @@ class StartingPhrases: UIViewController, UIImagePickerControllerDelegate, UINavi
         if (predictedPhrase == "Hello" && tag == 1) || (predictedPhrase == "Thank You" && tag == 2) || (predictedPhrase == "Nice To Meet You" && tag == 3){
             imageView.image = UIImage(systemName: "checkmark.circle.fill")
             imageView.tintColor = .systemGreen
+            increaseUserPoints()
         } else {
             imageView.image = UIImage(systemName: "xmark.circle.fill")
             imageView.tintColor = .systemRed
         }
         imageView.isHidden = false
+    }
+    
+    func increaseUserPoints() {
+        // Step 1: Fetch the current points of the user
+        getCurrentPoints { [weak self] currentPoints, error in
+            // Handle errors if the points could not be fetched
+            if let error = error {
+                print("Error fetching points: \(error)")
+                return
+            }
+            
+            // Ensure currentPoints is available
+            guard let currentPoints = currentPoints else {
+                print("Failed to fetch current points.")
+                return
+            }
+            
+            // Step 2: Increase the points by 1
+            let newPoints = currentPoints + 1
+            
+            // Step 3: Update the points on the backend
+            self?.updatePoints(currentPoints: newPoints) { success, message in
+                if success {
+                    // Successfully updated points
+                    print("Success: \(message ?? "")")
+                } else {
+                    // Error updating points
+                    print("Error updating points: \(message ?? "")")
+                }
+            }
+        }
+    }
+
+
+    
+    func getCurrentPoints(completion: @escaping (Int?, String?) -> Void) {
+        guard let username = UserSession.shared.username else {
+            completion(nil, "Username not found in UserSession.")
+            return
+        }
+        
+        let urlString = "http://127.0.0.1:8000/user/get-points/?username=\(username)"
+        guard let url = URL(string: urlString) else {
+            completion(nil, "Invalid URL.")
+            return
+        }
+        
+        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                completion(nil, "Request failed with error: \(error.localizedDescription)")
+                return
+            }
+            
+            guard let data = data else {
+                completion(nil, "No data received.")
+                return
+            }
+            
+            do {
+                if let responseJson = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                   let points = responseJson["points"] as? Int {
+                    completion(points, nil)  // Successfully retrieved points
+                } else {
+                    completion(nil, "Invalid response format.")
+                }
+            } catch {
+                completion(nil, "Failed to parse response data.")
+            }
+        }
+        
+        task.resume()
+    }
+
+    
+    
+    func updatePoints(currentPoints: Int, completion: @escaping (Bool, String?) -> Void) {
+        guard let username = UserSession.shared.username else {
+            completion(false, "Username not found in UserSession.")
+            return
+        }
+        
+        let urlString = "http://127.0.0.1:8000/user/update-points/"
+        guard let url = URL(string: urlString) else {
+            completion(false, "Invalid URL.")
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let body: [String: Any] = [
+            "username": username,
+            "points": currentPoints  // Send updated points value
+        ]
+        
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: body, options: [])
+            request.httpBody = jsonData
+        } catch {
+            completion(false, "Failed to serialize request body.")
+            return
+        }
+        
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(false, "Request failed with error: \(error.localizedDescription)")
+                return
+            }
+            
+            guard let data = data else {
+                completion(false, "No data received.")
+                return
+            }
+            
+            do {
+                if let responseJson = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                   let message = responseJson["message"] as? String {
+                    if message == "Points updated successfully." {
+                        completion(true, "Points updated successfully.")
+                    } else {
+                        completion(false, "Failed to update points.")
+                    }
+                } else {
+                    completion(false, "Invalid response format.")
+                }
+            } catch {
+                completion(false, "Failed to parse response data.")
+            }
+        }
+        
+        task.resume()
     }
 
     func getImageView(for tag: Int) -> UIImageView {
