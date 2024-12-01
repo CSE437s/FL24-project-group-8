@@ -25,6 +25,8 @@ from .models import VideoSerializer
 import os
 from django.conf import settings
 import logging
+from django.http import FileResponse
+import mimetypes
 
 User = get_user_model()
 
@@ -668,9 +670,13 @@ def upload_video_to_folder_view(request):
         except Exception as e:
             return JsonResponse({"error": f"Failed to create folder '{name}'. Error: {str(e)}"}, status=500)
 
+        word = request.POST.get('word')
+        if not word:
+            return JsonResponse({"error": "Please provide a word as a form field."}, status=400)
+
         # Save the uploaded file in the folder
         video_file = request.FILES['video']
-        target_path = os.path.join(folder_path, video_file.name)
+        target_path = os.path.join(folder_path, f'{word}.MOV')
 
         try:
             with open(target_path, 'wb+') as destination:
@@ -679,7 +685,7 @@ def upload_video_to_folder_view(request):
         except Exception as e:
             return JsonResponse({"error": f"Failed to save file. Error: {str(e)}"}, status=500)
 
-        return JsonResponse({"success": f"Video uploaded and saved in folder '{name}' as {video_file.name}"}, status=201)
+        return JsonResponse({"success": f"Video uploaded and saved as {word}.MOV"}, status=201)
 
     return JsonResponse({"error": "Invalid request. Provide a video file with key 'video' and a 'name' field."}, status=400)
 
@@ -721,3 +727,22 @@ def get_videos_from_folder_view(request, folder_name):
 
     # Return the list of video names
     return JsonResponse({"videos": video_files}, status=200)
+
+def serve_video(request, folder_name, video_name):
+    # Path to the video
+    video_directory = os.path.join(settings.BASE_DIR, "aslapp", "videos", folder_name)
+    video_path = os.path.join(video_directory, video_name)
+
+    if not os.path.exists(video_path):
+        return JsonResponse({"error": "File not found."}, status=404)
+
+    # Guess the correct MIME type
+    mime_type, _ = mimetypes.guess_type(video_path)
+    if not mime_type:
+        mime_type = "application/octet-stream"
+
+    # Serve the video file with proper headers
+    response = FileResponse(open(video_path, "rb"), content_type=mime_type)
+    response["Content-Disposition"] = f"inline; filename={video_name}"
+    response["Cache-Control"] = "no-cache"
+    return response

@@ -33,6 +33,10 @@ from . import views
 from .views import get_video_name
 from .views import upload_video_to_folder_view
 from . import views
+from django.conf import settings
+from django.conf.urls.static import static
+from django.views.static import serve
+from .views import serve_video
 urlpatterns = [
     path('auth/register/', register, name='register'),
     path('auth/activate/<uidb64>/<token>/', activate, name='activate'),
@@ -56,6 +60,13 @@ urlpatterns = [
     path('user/update-streak/', views.update_streak, name='update_streak'),
     path('user/get-points/', views.get_points, name='get_points'),
     path('user/get-streak/', views.get_streak, name='get_streak'),
+    path("static/<str:folder_name>/<str:video_name>", serve_video, name="serve_video"),
  ]
 
+if settings.DEBUG:
+    urlpatterns += [
+        path('static/<path:path>', serve, {
+            'document_root': settings.STATICFILES_DIRS[0],
+        }),
+    ]
 

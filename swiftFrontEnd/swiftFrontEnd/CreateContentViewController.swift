@@ -161,14 +161,24 @@ class CreateContentViewController: UIViewController, UIImagePickerControllerDele
     
     @IBAction func createContentButtonTapped(_ sender: UIButton) {
         guard let videoURL = selectedVideoURL else {
-                    showAlert("Error", message: "No video selected.")
-                    return
+            showAlert("Error", message: "No video selected.")
+            return
+        }
+        
+        // Get the text from the UITextField
+        let word = text.text ?? "" // Default to an empty string if nil
+        
+        uploadVideo(videoURL: videoURL, word: word) { response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    // Show an alert with the error message
+                    self.showAlert("Upload Failed", message: error)
+                } else if let response = response {
+                    // Show a success alert with the server response
+                    self.showAlert("Success", message: response)
                 }
-                
-                // Get the text from the UITextField
-                let word = text.text ?? "" // Default to an empty string if nil
-                uploadVideo(videoURL: videoURL, word: word)
-            
+            }
+        }
     }
     
     func presentMediaPicker(tag: Int) {
@@ -216,8 +226,13 @@ class CreateContentViewController: UIViewController, UIImagePickerControllerDele
         picker.dismiss(animated: true)
     }
 
-    func uploadVideo(videoURL: URL, word: String) {
-        let url = URL(string: "http://127.0.0.1:8000/upload-video/")!
+    func uploadVideo(videoURL: URL, word: String, completion: @escaping (String?, String?) -> Void) {
+        guard let username = UserSession.shared.username else {
+            completion(nil, "Username not found in UserSession.")
+            return
+        }
+        
+        let url = URL(string: "http://127.0.0.1:8000/upload-video-to-folder/")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         
@@ -232,6 +247,11 @@ class CreateContentViewController: UIViewController, UIImagePickerControllerDele
         
         // Create the multipart form data
         var body = Data()
+        
+        // Add the 'name' parameter
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"name\"\r\n\r\n".data(using: .utf8)!)
+        body.append("\(username)\r\n".data(using: .utf8)!)
         
         // Add the 'word' parameter
         body.append("--\(boundary)\r\n".data(using: .utf8)!)
