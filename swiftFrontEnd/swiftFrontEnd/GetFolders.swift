@@ -11,8 +11,10 @@ class GetFolders: UIViewController {
     private let stackView = UIStackView()
     
     override func viewDidLoad() {
+        print("viewDidLoad called") // Debugging step
         super.viewDidLoad()
-        
+        print("viewDidLoad called") // Check if this appears in the console
+
         view.backgroundColor = .white
         title = "Folders"
         
@@ -49,10 +51,13 @@ class GetFolders: UIViewController {
     
     
     private func fetchFolders() {
-        guard let url = URL(string: "http://localhost:8000/get-all-folders/") else {
+        guard let url = URL(string: "http://127.0.0.1:8000/get-all-folders/") else {
             showError("Invalid URL")
             return
         }
+        
+        print("url String: " + urlString)
+
 
         let task = URLSession.shared.dataTask(with: url) { data, response, error in
             DispatchQueue.main.async {
@@ -219,7 +224,7 @@ class GetVideos: UIViewController {
 
     
     private func fetchVideos() {
-        let urlString = "http://localhost:8000/get-videos-from-folder/\(folderName)/"
+        let urlString = "http://127.0.0.1:8000/get-videos-from-folder/\(folderName)/"
         guard let url = URL(string: urlString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "") else {
             showError("Invalid URL")
             return
