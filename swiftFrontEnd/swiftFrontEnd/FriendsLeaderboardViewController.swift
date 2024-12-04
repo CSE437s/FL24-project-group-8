@@ -264,21 +264,29 @@ class FriendsLeaderboardViewController: UIViewController {
         // Initialize the UIScrollView
         scrollView = UIScrollView()
         
-        // Set the scroll view's frame to match the width of the screen
-        scrollView.frame = CGRect(x: 0, y: 0, width: self.view.frame.size.width, height: self.view.frame.size.height)
+        // Set the scroll view's frame to occupy part of the screen
+        let scrollViewHeight = self.view.frame.size.height * 0.5 // Scroll view height is 75% of the screen height
+        scrollView.frame = CGRect(x: 0, y: 100, width: self.view.frame.size.width, height: scrollViewHeight)
         
         // Add the scroll view to the main view
         self.view.addSubview(scrollView)
         
-        // Enable scrolling and set content size
+        // Enable scrolling
         scrollView.isScrollEnabled = true
         
-        // Set the content insets to add space at the top (for the header)
-        scrollView.contentInset = UIEdgeInsets(top: 100, left: 0, bottom: 50, right: 0)
+        // Calculate the bottom inset as 1/4 of the screen height
+        let bottomInset = self.view.frame.size.height / 4
         
-        // Adjust the content size, making room for the header and the button at the bottom
-        scrollView.contentSize = CGSize(width: self.view.frame.size.width, height: self.view.frame.size.height * 1.5)
+        // Set the content insets to add space at the top and calculated space at the bottom
+        scrollView.contentInset = UIEdgeInsets(top: 20, left: 0, bottom: bottomInset, right: 0)
+        
+        // Adjust the content size, making room for the content inside
+        scrollView.contentSize = CGSize(width: self.view.frame.size.width, height: scrollViewHeight * 1.5)
+        
+    
     }
+
+
 
     
     
